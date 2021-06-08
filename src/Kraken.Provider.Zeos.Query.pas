@@ -17,7 +17,8 @@ type
     FConnection: TZConnection;
     FQuery: TZQuery;
   public
-    procedure Open(ASQL: String = '');
+    procedure Open(ASQL: String); overload;
+    procedure Open; overload;
     procedure StartTransaction;
     procedure Commit;
     function SQL: TKrakenProviderZeosQuery;
@@ -43,6 +44,12 @@ begin
   inherited;
 end;
 
+procedure TKrakenProviderZeosQuery.Open;
+begin
+  FQuery.Prepare;
+  FQuery.Open;
+end;
+
 procedure TKrakenProviderZeosQuery.Open(ASQL: String);
 begin
   if ASQL <> '' then
@@ -51,6 +58,7 @@ begin
     FQuery.SQL.Add(ASQL);
   end;
 
+  FQuery.Prepare;
   FQuery.Open;
 end;
 

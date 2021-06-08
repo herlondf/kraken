@@ -8,12 +8,13 @@ uses
   System.Generics.Collections,
 
   Kraken.Consts,
-  Kraken.Provider;
+  Kraken.Provider,
+  Kraken.Provider.Query;
 
 type
-  TKrakenProvider = Kraken.Provider.TKrakenProvider;
-
-  TKrakenProviderType   = Kraken.Consts.TKrakenProviderType;
+  TKrakenProviderType  = Kraken.Consts.TKrakenProviderType;
+  TKrakenProvider      = Kraken.Provider.TKrakenProvider;
+  TKrakenProviderQuery = Kraken.Provider.Query.TKrakenProviderQuery;
 
   TKrakenCore = class
   private
