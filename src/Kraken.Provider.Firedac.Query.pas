@@ -28,6 +28,7 @@ type
     procedure Commit;
     function SQL: TKrakenProviderFiredacQuery;
     function Add(ASQL: String): TKrakenProviderFiredacQuery;
+    function Clear: TKrakenProviderFiredacQuery;
   end;
 
 implementation
@@ -51,6 +52,7 @@ end;
 
 procedure TKrakenProviderFiredacQuery.Open;
 begin
+  FQuery.Prepare;
   FQuery.Open;
 end;
 
@@ -62,7 +64,14 @@ begin
     FQuery.SQL.Add(ASQL);
   end;
 
+  FQuery.Prepare;
   FQuery.Open;
+end;
+
+function TKrakenProviderFiredacQuery.SQL: TKrakenProviderFiredacQuery;
+begin
+  Result := Self;
+  FQuery.SQL.Clear;
 end;
 
 procedure TKrakenProviderFiredacQuery.StartTransaction;
@@ -70,20 +79,20 @@ begin
   FConnection.StartTransaction;
 end;
 
+function TKrakenProviderFiredacQuery.Add(
+  ASQL: String): TKrakenProviderFiredacQuery;
+begin
+
+end;
+
+function TKrakenProviderFiredacQuery.Clear: TKrakenProviderFiredacQuery;
+begin
+
+end;
+
 procedure TKrakenProviderFiredacQuery.Commit;
 begin
   FConnection.Commit;
-end;
-
-function TKrakenProviderFiredacQuery.SQL: TKrakenProviderFiredacQuery;
-begin
-  Result := Self;
-end;
-
-function TKrakenProviderFiredacQuery.Add(ASQL: String): TKrakenProviderFiredacQuery;
-begin
-  Result := Self;
-  FQuery.SQL.Add(ASQL);
 end;
 
 end.
