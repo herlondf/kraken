@@ -22,7 +22,8 @@ type
     constructor Create(AConnection: TFDConnection);
     destructor Destroy; override;
 
-    procedure Open(ASQL: String = '');
+    procedure Open(ASQL: String); overload;
+    procedure Open; overload;
     procedure StartTransaction;
     procedure Commit;
     function SQL: TKrakenProviderFiredacQuery;
@@ -46,6 +47,11 @@ begin
   FQuery.Free;
 
   inherited;
+end;
+
+procedure TKrakenProviderFiredacQuery.Open;
+begin
+  FQuery.Open;
 end;
 
 procedure TKrakenProviderFiredacQuery.Open(ASQL: String);
