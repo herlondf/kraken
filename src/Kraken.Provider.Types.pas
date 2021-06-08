@@ -1,9 +1,9 @@
-unit Brave.Provider.Types;
+unit Kraken.Provider.Types;
 
 interface
 
 uses
-  {$IF DEFINED(BRAVE_FIREDAC)}
+  {$IF DEFINED(KRAKEN_FIREDAC)}
   FireDAC.Comp.Client,
   FireDAC.Phys.PGDef,
   FireDAC.Phys,
@@ -18,8 +18,8 @@ uses
   {$ENDIF}
 
 type
-  TBraveProviderTypes = class
-    {$IF DEFINED(BRAVE_FIREDAC)}
+  TKrakenProviderTypes = class
+    {$IF DEFINED(KRAKEN_FIREDAC)}
     class procedure Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
     class procedure Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
     {$ELSE}
@@ -30,11 +30,11 @@ type
 
 implementation
 
-{ TBraveProviderTypes }
+{ TKrakenProviderTypes }
 
-{$IF DEFINED(BRAVE_FIREDAC)}
+{$IF DEFINED(KRAKEN_FIREDAC)}
 
-class procedure TBraveProviderTypes.Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+class procedure TKrakenProviderTypes.Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
 begin
   ADriver                := TFDPhysPgDriverLink.Create(nil);
   ADriver.Name           := 'PGDriver';
@@ -42,7 +42,7 @@ begin
   AConnection.DriverName := 'PG';
 end;
 
-class procedure TBraveProviderTypes.Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+class procedure TKrakenProviderTypes.Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
 begin
   ADriver      := TFDPhysFBDriverLink.Create(nil);
   ADriver.Name := 'FBDriver';
@@ -52,7 +52,7 @@ end;
 
 {$ELSE}
 
-class procedure TBraveProviderTypes.Postgres(AConnection: TZConnection);
+class procedure TKrakenProviderTypes.Postgres(AConnection: TZConnection);
 begin
   AConnection.Protocol := 'postgresql-9';
   AConnection.Properties.Values['codepage'] := 'utf-8';
@@ -60,7 +60,7 @@ begin
   AConnection.AutoCommit := False;
 end;
 
-class procedure TBraveProviderTypes.Firebird(AConnection: TZConnection);
+class procedure TKrakenProviderTypes.Firebird(AConnection: TZConnection);
 begin
   AConnection.Protocol := 'firebird-2.5';
   AConnection.Properties.Values['codepage'] := 'utf-8';

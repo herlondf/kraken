@@ -1,4 +1,4 @@
-unit Brave.Provider.Firedac.Metadata;
+unit Kraken.Provider.Firedac.Metadata;
 
 interface
 
@@ -14,12 +14,12 @@ uses
   FireDAC.Comp.Client,
   FireDAC.Phys.Intf,
 
-  {BraveDAC}
-  Brave.Consts,
-  Brave.Provider.Firedac.Metadata.Entity;
+  {KrakenDAC}
+  Kraken.Consts,
+  Kraken.Provider.Firedac.Metadata.Entity;
 
 type
-  TBraveProviderFiredacMetadata = class(TFDMetaInfoQuery)
+  TKrakenProviderFiredacMetadata = class(TFDMetaInfoQuery)
     constructor Create(AConnection: TFDConnection);
     destructor Destroy; override;
   strict private
@@ -28,23 +28,23 @@ type
     FOnLog     : TNotifyEvent;
     procedure SetOnLog(const Value: TNotifyEvent);
   private
-    FEntitySchemas    : TBraveEntitySchemas;
-    FEntityTables     : TBraveEntityTables;
-    FEntityColumns    : TBraveEntityColumns;
-    FEntityPKs        : TBraveEntityPKs;
-    FPKFields   : TBraveEntityPKFields;
-    FEntityFKs        : TBraveEntityFKs;
-    FEntityFKFields   : TBraveEntityFKFields;
-    FEntityGenerators : TBraveEntityGenerators;
+    FEntitySchemas    : TKrakenEntitySchemas;
+    FEntityTables     : TKrakenEntityTables;
+    FEntityColumns    : TKrakenEntityColumns;
+    FEntityPKs        : TKrakenEntityPKs;
+    FPKFields   : TKrakenEntityPKFields;
+    FEntityFKs        : TKrakenEntityFKs;
+    FEntityFKFields   : TKrakenEntityFKFields;
+    FEntityGenerators : TKrakenEntityGenerators;
   public
-    function EntitySchemas    : TBraveEntitySchemas;
-    function EntityTables     : TBraveEntityTables;
-    function EntityColumns    : TBraveEntityColumns;
-    function EntityPKs        : TBraveEntityPKs;
-    function EntityPKFields   : TBraveEntityPKFields;
-    function EntityFKs        : TBraveEntityFKs;
-    function EntityFKFields   : TBraveEntityFKFields;
-    function EntityGenerators : TBraveEntityGenerators;
+    function EntitySchemas    : TKrakenEntitySchemas;
+    function EntityTables     : TKrakenEntityTables;
+    function EntityColumns    : TKrakenEntityColumns;
+    function EntityPKs        : TKrakenEntityPKs;
+    function EntityPKFields   : TKrakenEntityPKFields;
+    function EntityFKs        : TKrakenEntityFKs;
+    function EntityFKFields   : TKrakenEntityFKFields;
+    function EntityGenerators : TKrakenEntityGenerators;
 
     procedure Schemas(const ASchema: String = '');
 
@@ -62,15 +62,15 @@ type
 
 implementation
 
-{ TBraveProviderFiredacMetadata }
+{ TKrakenProviderFiredacMetadata }
 
-constructor TBraveProviderFiredacMetadata.Create(AConnection: TFDConnection);
+constructor TKrakenProviderFiredacMetadata.Create(AConnection: TFDConnection);
 begin
   FConnection := AConnection;
   Self.Connection := FConnection;
 end;
 
-destructor TBraveProviderFiredacMetadata.Destroy;
+destructor TKrakenProviderFiredacMetadata.Destroy;
 begin
   if Assigned( FEntitySchemas ) then
     FEntitySchemas.Free;
@@ -100,76 +100,76 @@ begin
   inherited;
 end;
 
-function TBraveProviderFiredacMetadata.EntityTables: TBraveEntityTables;
+function TKrakenProviderFiredacMetadata.EntityTables: TKrakenEntityTables;
 begin
   if not Assigned( FEntityTables ) then
-    FEntityTables := TBraveEntityTables.Create();
+    FEntityTables := TKrakenEntityTables.Create();
 
   Result := FEntityTables;
 end;
 
-function TBraveProviderFiredacMetadata.EntityColumns: TBraveEntityColumns;
+function TKrakenProviderFiredacMetadata.EntityColumns: TKrakenEntityColumns;
 begin
   if not Assigned( FEntityColumns ) then
-    FEntityColumns := TBraveEntityColumns.Create();
+    FEntityColumns := TKrakenEntityColumns.Create();
 
   Result := FEntityColumns;
 end;
 
-function TBraveProviderFiredacMetadata.EntityPKs: TBraveEntityPKs;
+function TKrakenProviderFiredacMetadata.EntityPKs: TKrakenEntityPKs;
 begin
   if not Assigned( FEntityPKs ) then
-    FEntityPKs := TBraveEntityPKs.Create();
+    FEntityPKs := TKrakenEntityPKs.Create();
 
   Result := FEntityPKs;
 end;
 
-function TBraveProviderFiredacMetadata.EntitySchemas: TBraveEntitySchemas;
+function TKrakenProviderFiredacMetadata.EntitySchemas: TKrakenEntitySchemas;
 begin
   if not Assigned( FEntitySchemas ) then
-    FEntitySchemas := TBraveEntitySchemas.Create();
+    FEntitySchemas := TKrakenEntitySchemas.Create();
 
   Result := FEntitySchemas;
 end;
 
-function TBraveProviderFiredacMetadata.EntityPKFields: TBraveEntityPKFields;
+function TKrakenProviderFiredacMetadata.EntityPKFields: TKrakenEntityPKFields;
 begin
   if not Assigned( FPKFields ) then
-    FPKFields := TBraveEntityPKFields.Create();
+    FPKFields := TKrakenEntityPKFields.Create();
 
   Result := FPKFields;
 end;
 
-function TBraveProviderFiredacMetadata.EntityFKs: TBraveEntityFKs;
+function TKrakenProviderFiredacMetadata.EntityFKs: TKrakenEntityFKs;
 begin
   if not Assigned( FEntityFKs ) then
-    FEntityFKs := TBraveEntityFKs.Create();
+    FEntityFKs := TKrakenEntityFKs.Create();
 
   Result := FEntityFKs;
 end;
 
-function TBraveProviderFiredacMetadata.EntityGenerators: TBraveEntityGenerators;
+function TKrakenProviderFiredacMetadata.EntityGenerators: TKrakenEntityGenerators;
 begin
   if not Assigned( FEntityGenerators ) then
-    FEntityGenerators := TBraveEntityGenerators.Create();
+    FEntityGenerators := TKrakenEntityGenerators.Create();
 
   Result := FEntityGenerators;
 end;
 
-function TBraveProviderFiredacMetadata.EntityFKFields: TBraveEntityFKFields;
+function TKrakenProviderFiredacMetadata.EntityFKFields: TKrakenEntityFKFields;
 begin
   if not Assigned( FEntityFKFields ) then
-    FEntityFKFields := TBraveEntityFKFields.Create();
+    FEntityFKFields := TKrakenEntityFKFields.Create();
 
   Result := FEntityFKFields;
 end;
 
-procedure TBraveProviderFiredacMetadata.SetOnLog(const Value: TNotifyEvent);
+procedure TKrakenProviderFiredacMetadata.SetOnLog(const Value: TNotifyEvent);
 begin
   FOnLog := Value;
 end;
 
-procedure TBraveProviderFiredacMetadata.Schemas(const ASchema: String = '');
+procedure TKrakenProviderFiredacMetadata.Schemas(const ASchema: String = '');
 begin
   Close;
   MetaInfoKind := mkSchemas;
@@ -189,7 +189,7 @@ begin
         begin
           if AnsiUpperCase( FieldByName( SCHEMA_NAME ).AsString ) = AnsiUpperCase( ASchema ) then
           begin
-            with EntitySchemas.Items[ EntitySchemas.Add( TBraveEntitySchema.Create ) ] do
+            with EntitySchemas.Items[ EntitySchemas.Add( TKrakenEntitySchema.Create ) ] do
             begin
               Name := FieldByName( SCHEMA_NAME ).AsString;
 
@@ -199,7 +199,7 @@ begin
         end
         else
         begin
-          with EntitySchemas.Items[ EntitySchemas.Add( TBraveEntitySchema.Create ) ] do
+          with EntitySchemas.Items[ EntitySchemas.Add( TKrakenEntitySchema.Create ) ] do
           begin
             Name := FieldByName( SCHEMA_NAME ).AsString;
           end;
@@ -216,7 +216,7 @@ begin
 end;
 
 
-procedure TBraveProviderFiredacMetadata.Tables( const ASchema: String; const ATable: String = '' );
+procedure TKrakenProviderFiredacMetadata.Tables( const ASchema: String; const ATable: String = '' );
 var
   LField : TField;
   LDebug: String;
@@ -243,7 +243,7 @@ begin
         begin
           if AnsiUpperCase( FieldByName( TABLE_NAME ).AsString ) = AnsiUpperCase( ATable ) then
           begin
-            with EntityTables.Items[ EntityTables.Add( TBraveEntityTable.Create ) ] do
+            with EntityTables.Items[ EntityTables.Add( TKrakenEntityTable.Create ) ] do
             begin
               Name   := FieldByName( TABLE_NAME ).AsString;
 
@@ -253,7 +253,7 @@ begin
         end
         else
         begin
-          with EntityTables.Items[ EntityTables.Add( TBraveEntityTable.Create ) ] do
+          with EntityTables.Items[ EntityTables.Add( TKrakenEntityTable.Create ) ] do
           begin
             Name := FieldByName( TABLE_NAME ).AsString;
           end;
@@ -269,7 +269,7 @@ begin
   end;
 end;
 
-procedure TBraveProviderFiredacMetadata.Columns( const ASchema: String; const ATable: String; const AColumn: String = '' );
+procedure TKrakenProviderFiredacMetadata.Columns( const ASchema: String; const ATable: String; const AColumn: String = '' );
 var
   L: String;
 begin
@@ -293,7 +293,7 @@ begin
         begin
           if AnsiUpperCase( FieldByName( COLUMN_NAME ).AsString ) = AnsiUpperCase( AColumn ) then
           begin
-            with EntityColumns.Items[ EntityColumns.Add( TBraveEntityColumn.Create ) ] do
+            with EntityColumns.Items[ EntityColumns.Add( TKrakenEntityColumn.Create ) ] do
             begin
               Name      := FieldByName( COLUMN_NAME      ).AsString;
               Typename  := FieldByName( COLUMN_TYPENAME  ).AsString;
@@ -307,7 +307,7 @@ begin
         end
         else
         begin
-          with EntityColumns.Items[ EntityColumns.Add( TBraveEntityColumn.Create ) ] do
+          with EntityColumns.Items[ EntityColumns.Add( TKrakenEntityColumn.Create ) ] do
           begin
             Name      := FieldByName( COLUMN_NAME      ).AsString;
             Typename  := FieldByName( COLUMN_TYPENAME  ).AsString;
@@ -327,7 +327,7 @@ begin
   end;
 end;
 
-procedure TBraveProviderFiredacMetadata.PK(const ASchema: String = 'public'; const ATable: String = '');
+procedure TKrakenProviderFiredacMetadata.PK(const ASchema: String = 'public'; const ATable: String = '');
 var
   LTEste: String;
 begin
@@ -346,7 +346,7 @@ begin
 
       while not eof do
       begin
-        with EntityPKs.Items[ EntityPKs.Add( TBraveEntityPK.Create ) ] do
+        with EntityPKs.Items[ EntityPKs.Add( TKrakenEntityPK.Create ) ] do
         begin
           Name    := FieldByName( CONSTRAINT_NAME  ).AsString;
           Table   := FieldByName( TABLE_NAME       ).AsString;
@@ -364,7 +364,7 @@ begin
 
 end;
 
-procedure TBraveProviderFiredacMetadata.PKFields( const ASchema: String = 'public'; ATable: String = '' );
+procedure TKrakenProviderFiredacMetadata.PKFields( const ASchema: String = 'public'; ATable: String = '' );
 begin
   Close;
   MetaInfoKind   := mkPrimaryKeyFields;
@@ -381,7 +381,7 @@ begin
     try
       while not Eof do
       begin
-        with EntityPKFields.Items[ EntityPKFields.Add( TBraveEntityPKField.Create ) ] do
+        with EntityPKFields.Items[ EntityPKFields.Add( TKrakenEntityPKField.Create ) ] do
         begin
           Name    := FieldByName( INDEX_NAME  ).AsString;
           Column  := FieldByName( COLUMN_NAME ).AsString;
@@ -397,9 +397,9 @@ begin
   end;
 end;
 
-function TBraveProviderFiredacMetadata.FK(const ATable: String; ASchema: String = 'public'): String;
+function TKrakenProviderFiredacMetadata.FK(const ATable: String; ASchema: String = 'public'): String;
 var
-  LFKField: TBraveEntityFK;
+  LFKField: TKrakenEntityFK;
  LTeste : String;
   I: Integer;
 begin
@@ -423,7 +423,7 @@ begin
     try
       while not Eof do
       begin
-        with EntityFKs.Items[ EntityFKs.Add( TBraveEntityFK.Create ) ] do
+        with EntityFKs.Items[ EntityFKs.Add( TKrakenEntityFK.Create ) ] do
         begin
           for I := 1 to FieldList.Count do
           begin
@@ -446,10 +446,10 @@ begin
   end;
 end;
 
-function TBraveProviderFiredacMetadata.FKFields(ATable: String; ASchema: String = 'public'; AConstraint: String = ''): String;
+function TKrakenProviderFiredacMetadata.FKFields(ATable: String; ASchema: String = 'public'; AConstraint: String = ''): String;
 var
   LField : TField;
-  LFKField: TBraveEntityFKField;
+  LFKField: TKrakenEntityFKField;
   LContinue: Boolean;
   LTeste : String;
   I: Integer;
@@ -484,7 +484,7 @@ begin
         if LContinue then
           Continue;
 
-        with EntityFKFields.Items[ EntityFKFields.Add( TBraveEntityFKField.Create ) ] do
+        with EntityFKFields.Items[ EntityFKFields.Add( TKrakenEntityFKField.Create ) ] do
         begin
           for I := 1 to FieldList.Count do
           begin
@@ -510,7 +510,7 @@ begin
   end;
 end;
 
-procedure TBraveProviderFiredacMetadata.Generators(const ASchema: String);
+procedure TKrakenProviderFiredacMetadata.Generators(const ASchema: String);
 begin
   Close;
   MetaInfoKind   := mkGenerators;
@@ -526,7 +526,7 @@ begin
     try
       while not Eof do
       begin
-        with EntityGenerators.Items[ EntityGenerators.Add( TBraveEntityGenerator.Create ) ] do
+        with EntityGenerators.Items[ EntityGenerators.Add( TKrakenEntityGenerator.Create ) ] do
         begin
 
           Name := FieldByName( GENERATOR_NAME ).AsString;
