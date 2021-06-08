@@ -1,4 +1,4 @@
-unit Brave.Provider.Firedac.Settings;
+unit Kraken.Provider.Firedac.Settings;
 
 interface
 
@@ -11,7 +11,7 @@ uses
 type
   TFDStanAsyncMode = FireDAC.Stan.Intf.TFDStanAsyncMode;
 
-  TBraveProviderFiredacSettings = class
+  TKrakenProviderFiredacSettings = class
     constructor Create(AConnetion: TFDCustomConnection; AIniPath: String = '');
     destructor Destroy; override;
   private
@@ -25,49 +25,49 @@ type
 
     function HasAssignedIniFile: Boolean;
   public
-    function Host(const AHost: String): TBraveProviderFiredacSettings; overload;
-    function Host(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings; overload;
+    function Host(const AHost: String): TKrakenProviderFiredacSettings; overload;
+    function Host(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Host: String; overload;
 
-    function Port(const APort: Integer): TBraveProviderFiredacSettings; overload;
-    function Port(const APort: String): TBraveProviderFiredacSettings; overload;
-    function Port(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings; overload;
+    function Port(const APort: Integer): TKrakenProviderFiredacSettings; overload;
+    function Port(const APort: String): TKrakenProviderFiredacSettings; overload;
+    function Port(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Port: Integer; overload;
 
-    function Username(const AUsername: String): TBraveProviderFiredacSettings; overload;
-    function Username(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings; overload;
+    function Username(const AUsername: String): TKrakenProviderFiredacSettings; overload;
+    function Username(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Username: String; overload;
 
-    function Password(const APassword: String): TBraveProviderFiredacSettings; overload;
-    function Password(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings; overload;
+    function Password(const APassword: String): TKrakenProviderFiredacSettings; overload;
+    function Password(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Password: String; overload;
 
-    function Database(const ADatabase: String): TBraveProviderFiredacSettings; overload;
-    function Database(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings; overload;
+    function Database(const ADatabase: String): TKrakenProviderFiredacSettings; overload;
+    function Database(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Database: String; overload;
 
     ///<summary>            Define o modo de bloqueio da execucao da query                        </summary>
     ///<param name="AMode"> amBlocking, amNonBlocking, amCancelDialog, amAsync                    </param>
     ///<remarks>            Default: amBlocking                                                   </remarks>
-    function AsyncMode(const AMode: TFDStanAsyncMode): TBraveProviderFiredacSettings;
+    function AsyncMode(const AMode: TFDStanAsyncMode): TKrakenProviderFiredacSettings;
 
     ///<summary>            Define o autocommit de transacoes (insert, update, delete)            </summary>
     ///<param name="AMode"> Se falso, deve usar o StartTransaction e Commit                       </param>
     ///<remarks>            Default: False                                                        </remarks>
-    function AutoCommit(const AMode: Boolean): TBraveProviderFiredacSettings;
+    function AutoCommit(const AMode: Boolean): TKrakenProviderFiredacSettings;
 
     ///<summary>            Define a capacidade de auto-reconectar ao banco apos perda de conexao </summary>
     ///<param name="AMode"> Se falso, deve implementar rotina de auto-reconectar                  </param>
     ///<remarks>            Default: True                                                         </remarks>
-    function AutoRecoverConnection(const AMode: Boolean): TBraveProviderFiredacSettings;
+    function AutoRecoverConnection(const AMode: Boolean): TKrakenProviderFiredacSettings;
 
   end;
 
 implementation
 
-{ TBraveProviderFiredacSettings }
+{ TKrakenProviderFiredacSettings }
 
-constructor TBraveProviderFiredacSettings.Create(AConnetion: TFDCustomConnection; AIniPath: String);
+constructor TKrakenProviderFiredacSettings.Create(AConnetion: TFDCustomConnection; AIniPath: String);
 begin
   FConnection := AConnetion;
 
@@ -75,13 +75,13 @@ begin
     FIniFile := TIniFile.Create(AIniPath);
 end;
 
-destructor TBraveProviderFiredacSettings.Destroy;
+destructor TKrakenProviderFiredacSettings.Destroy;
 begin
 
   inherited;
 end;
 
-function TBraveProviderFiredacSettings.HasAssignedIniFile: Boolean;
+function TKrakenProviderFiredacSettings.HasAssignedIniFile: Boolean;
 begin
   Result := FIniFile <> nil;
 
@@ -89,7 +89,7 @@ begin
     raise Exception.Create('Has not inifile assigned. Try pass parameter on create method.');
 end;
 
-function TBraveProviderFiredacSettings.Host(const AHost: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Host(const AHost: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FHost  := AHost;
@@ -97,7 +97,7 @@ begin
   FConnection.Params.Add('Server='+FHost);
 end;
 
-function TBraveProviderFiredacSettings.Host(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Host(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   HasAssignedIniFile;
@@ -106,26 +106,26 @@ begin
   FConnection.Params.Add('Server='+FHost);
 end;
 
-function TBraveProviderFiredacSettings.Host: String;
+function TKrakenProviderFiredacSettings.Host: String;
 begin
   Result := FHost;
 end;
 
-function TBraveProviderFiredacSettings.Port(const APort: Integer): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Port(const APort: Integer): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FPort  := APort;
   FConnection.Params.Add('Port='+IntToStr(FPort));
 end;
 
-function TBraveProviderFiredacSettings.Port(const APort: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Port(const APort: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FPort  := StrToIntDef(APort, 5432);
   FConnection.Params.Add('Port='+IntToStr(FPort));
 end;
 
-function TBraveProviderFiredacSettings.Port(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Port(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   HasAssignedIniFile;
@@ -134,12 +134,12 @@ begin
   FConnection.Params.Add('Port='+IntToStr(FPort));
 end;
 
-function TBraveProviderFiredacSettings.Port: Integer;
+function TKrakenProviderFiredacSettings.Port: Integer;
 begin
   Result := FPort;
 end;
 
-function TBraveProviderFiredacSettings.Username(const AUsername: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Username(const AUsername: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FUsername := AUsername;
@@ -147,7 +147,7 @@ begin
   FConnection.Params.UserName := FUsername;
 end;
 
-function TBraveProviderFiredacSettings.Username(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Username(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   HasAssignedIniFile;
@@ -156,12 +156,12 @@ begin
   FConnection.Params.UserName := FUsername;
 end;
 
-function TBraveProviderFiredacSettings.Username: String;
+function TKrakenProviderFiredacSettings.Username: String;
 begin
   Result := FUsername;
 end;
 
-function TBraveProviderFiredacSettings.Password(const APassword: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Password(const APassword: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FPassword := APassword;
@@ -169,7 +169,7 @@ begin
   FConnection.Params.Password := FPassword;
 end;
 
-function TBraveProviderFiredacSettings.Password(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Password(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   HasAssignedIniFile;
@@ -178,12 +178,12 @@ begin
   FConnection.Params.Password := FPassword;
 end;
 
-function TBraveProviderFiredacSettings.Password: String;
+function TKrakenProviderFiredacSettings.Password: String;
 begin
   Result := FPassword;
 end;
 
-function TBraveProviderFiredacSettings.Database(const ADatabase: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Database(const ADatabase: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FDatabase := ADatabase;
@@ -191,7 +191,7 @@ begin
   FConnection.Params.Database := FDatabase;
 end;
 
-function TBraveProviderFiredacSettings.Database(const ASection, AIdent, ADefault: String): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.Database(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   HasAssignedIniFile;
@@ -200,24 +200,24 @@ begin
   FConnection.Params.Database := FDatabase;
 end;
 
-function TBraveProviderFiredacSettings.Database: String;
+function TKrakenProviderFiredacSettings.Database: String;
 begin
   Result := FDatabase;
 end;
 
-function TBraveProviderFiredacSettings.AsyncMode(const AMode: TFDStanAsyncMode): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.AsyncMode(const AMode: TFDStanAsyncMode): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FConnection.ResourceOptions.CmdExecMode := AMode
 end;
 
-function TBraveProviderFiredacSettings.AutoCommit(const AMode: Boolean): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.AutoCommit(const AMode: Boolean): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
   FConnection.TxOptions.AutoCommit := AMode;
 end;
 
-function TBraveProviderFiredacSettings.AutoRecoverConnection(const AMode: Boolean): TBraveProviderFiredacSettings;
+function TKrakenProviderFiredacSettings.AutoRecoverConnection(const AMode: Boolean): TKrakenProviderFiredacSettings;
 begin
   Result := Self;
 

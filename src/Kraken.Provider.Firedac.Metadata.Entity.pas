@@ -1,4 +1,4 @@
-unit Brave.Provider.Firedac.Metadata.Entity;
+unit Kraken.Provider.Firedac.Metadata.Entity;
 
 interface
 
@@ -7,7 +7,7 @@ uses
   System.Generics.Collections;
 
 type
-  TBraveEntitySchema = class
+  TKrakenEntitySchema = class
   private
     FRecNo : Integer;
     FName : String;
@@ -18,18 +18,18 @@ type
     property CatalogName: String read FCatalogName write FCatalogName;
   end;
 
-  TBraveEntitySchemas = TObjectList<TBraveEntitySchema>;
+  TKrakenEntitySchemas = TObjectList<TKrakenEntitySchema>;
 
-  TBraveEntityTable = class
+  TKrakenEntityTable = class
   private
     FName : String;
   public
     property Name: String read FName write FName;
   end;
 
-  TBraveEntityTables = TObjectList<TBraveEntityTable>;
+  TKrakenEntityTables = TObjectList<TKrakenEntityTable>;
 
-  TBraveEntityColumn = class
+  TKrakenEntityColumn = class
   private
     FName      : String;
     FTypename  : String;
@@ -44,10 +44,10 @@ type
     property Length    : String read FLength    write FLength;
   end;
 
-  TBraveEntityColumns = TObjectList<TBraveEntityColumn>;
+  TKrakenEntityColumns = TObjectList<TKrakenEntityColumn>;
 
   { Primary Key }
-  TBraveEntityPK = class
+  TKrakenEntityPK = class
     private
       FName  : String;
       FTable : String;
@@ -56,9 +56,9 @@ type
       property Table  : String read FTable  write FTable;
   end;
 
-  TBraveEntityPKs = TObjectList<TBraveEntityPK>;
+  TKrakenEntityPKs = TObjectList<TKrakenEntityPK>;
 
-  TBraveEntityPKField = class
+  TKrakenEntityPKField = class
     private
       FName   : String;
       FColumn : String;
@@ -67,10 +67,10 @@ type
       property Column : String read FColumn write FColumn;
   end;
 
-  TBraveEntityPKFields = TObjectList<TBraveEntityPKField>;
+  TKrakenEntityPKFields = TObjectList<TKrakenEntityPKField>;
 
   { Foreighn Key }
-  TBraveEntityFK = class
+  TKrakenEntityFK = class
     private
       FNameFK  : String;
       FTableFK : String;
@@ -79,9 +79,9 @@ type
       property TableFK : String read FTableFK  write FTableFK;
   end;
 
-  TBraveEntityFKs = TObjectList<TBraveEntityFK>;
+  TKrakenEntityFKs = TObjectList<TKrakenEntityFK>;
 
-  TBraveEntityFKField = class
+  TKrakenEntityFKField = class
     private
       FName     : String;
       FTableFK : String;
@@ -95,16 +95,16 @@ type
 
   end;
 
-  TBraveEntityFKFields = TObjectList<TBraveEntityFKField>;
+  TKrakenEntityFKFields = TObjectList<TKrakenEntityFKField>;
 
-  TBraveEntityGenerator = class
+  TKrakenEntityGenerator = class
     private
       FName: String;
     public
       property Name: String read FName write FName;
   end;
 
-  TBraveEntityGenerators = TObjectList<TBraveEntityGenerator>;
+  TKrakenEntityGenerators = TObjectList<TKrakenEntityGenerator>;
 
 implementation
 

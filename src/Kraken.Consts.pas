@@ -1,9 +1,9 @@
-unit Brave.Consts;
+unit Kraken.Consts;
 
 interface
 
 type
-  TBraveProviderType = (ptPostgres, ptFirebird);
+  TKrakenProviderType = (ptPostgres, ptFirebird);
 
   { Structure Consts }
   const CREATE_SCHEMA       = ' CREATE SCHEMA ';
