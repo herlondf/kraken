@@ -23,6 +23,7 @@ type
     procedure Commit;
     function SQL: TKrakenProviderZeosQuery;
     function Add(ASQL: String): TKrakenProviderZeosQuery;
+    function Clear: TKrakenProviderZeosQuery;
   end;
 
 implementation
@@ -65,6 +66,12 @@ end;
 procedure TKrakenProviderZeosQuery.StartTransaction;
 begin
   FConnection.StartTransaction;
+end;
+
+function TKrakenProviderZeosQuery.Clear: TKrakenProviderZeosQuery;
+begin
+  Result := Self;
+  FQuery.SQL.Clear;
 end;
 
 procedure TKrakenProviderZeosQuery.Commit;
