@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://github.com/herlondf/kraken/blob/master/assets/logo.png">
-    <img alt="Horse" height="150" src="https://github.com/herlondf/kraken/blob/master/assets/logo.png">
+  <a href="https://github.com/herlondf/kraken/blob/main/assets/Logo.png">
+    <img alt="Kraken" height="150" src="https://github.com/herlondf/kraken/blob/main/assets/Logo.png">
   </a>  
 </p><br>
 <p align="center">
