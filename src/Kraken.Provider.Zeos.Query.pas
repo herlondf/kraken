@@ -1,4 +1,4 @@
-unit Brave.Provider.Zeos.Query;
+unit Kraken.Provider.Zeos.Query;
 
 interface
 
@@ -10,7 +10,7 @@ uses
   ZConnection;
 
 type
-  TBraveProviderZeosQuery = class(TZQuery)
+  TKrakenProviderZeosQuery = class(TZQuery)
     constructor Create(AConnection: TZConnection);
     destructor Destroy; override;
   private
@@ -20,15 +20,15 @@ type
     procedure Open(ASQL: String = '');
     procedure StartTransaction;
     procedure Commit;
-    function SQL: TBraveProviderZeosQuery;
-    function Add(ASQL: String): TBraveProviderZeosQuery;
+    function SQL: TKrakenProviderZeosQuery;
+    function Add(ASQL: String): TKrakenProviderZeosQuery;
   end;
 
 implementation
 
-{ TBraveProviderZeosQuery }
+{ TKrakenProviderZeosQuery }
 
-constructor TBraveProviderZeosQuery.Create(AConnection: TZConnection);
+constructor TKrakenProviderZeosQuery.Create(AConnection: TZConnection);
 begin
   FConnection := AConnection;
 
@@ -36,14 +36,14 @@ begin
   FQuery.Connection := FConnection;
 end;
 
-destructor TBraveProviderZeosQuery.Destroy;
+destructor TKrakenProviderZeosQuery.Destroy;
 begin
   FQuery.Free;
 
   inherited;
 end;
 
-procedure TBraveProviderZeosQuery.Open(ASQL: String);
+procedure TKrakenProviderZeosQuery.Open(ASQL: String);
 begin
   if ASQL <> '' then
   begin
@@ -54,22 +54,22 @@ begin
   FQuery.Open;
 end;
 
-procedure TBraveProviderZeosQuery.StartTransaction;
+procedure TKrakenProviderZeosQuery.StartTransaction;
 begin
   FConnection.StartTransaction;
 end;
 
-procedure TBraveProviderZeosQuery.Commit;
+procedure TKrakenProviderZeosQuery.Commit;
 begin
   FConnection.Commit;
 end;
 
-function TBraveProviderZeosQuery.SQL: TBraveProviderZeosQuery;
+function TKrakenProviderZeosQuery.SQL: TKrakenProviderZeosQuery;
 begin
   Result := Self;
 end;
 
-function TBraveProviderZeosQuery.Add(ASQL: String): TBraveProviderZeosQuery;
+function TKrakenProviderZeosQuery.Add(ASQL: String): TKrakenProviderZeosQuery;
 begin
   Result := Self;
   FQuery.SQL.Add(ASQL);

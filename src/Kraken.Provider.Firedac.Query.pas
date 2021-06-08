@@ -1,4 +1,4 @@
-unit Brave.Provider.Firedac.Query;
+unit Kraken.Provider.Firedac.Query;
 
 interface
 
@@ -14,7 +14,7 @@ uses
   FireDAC.Stan.Option;
 
 type
-  TBraveProviderFiredacQuery = class(TFDQuery)
+  TKrakenProviderFiredacQuery = class(TFDQuery)
   private
     FConnection: TFDConnection;
     FQuery: TFDQuery;
@@ -25,15 +25,15 @@ type
     procedure Open(ASQL: String = '');
     procedure StartTransaction;
     procedure Commit;
-    function SQL: TBraveProviderFiredacQuery;
-    function Add(ASQL: String): TBraveProviderFiredacQuery;
+    function SQL: TKrakenProviderFiredacQuery;
+    function Add(ASQL: String): TKrakenProviderFiredacQuery;
   end;
 
 implementation
 
-{ TBraveProviderFiredacQuery }
+{ TKrakenProviderFiredacQuery }
 
-constructor TBraveProviderFiredacQuery.Create(AConnection: TFDConnection);
+constructor TKrakenProviderFiredacQuery.Create(AConnection: TFDConnection);
 begin
   FConnection := AConnection;
 
@@ -41,14 +41,14 @@ begin
   FQuery.Connection := FConnection;
 end;
 
-destructor TBraveProviderFiredacQuery.Destroy;
+destructor TKrakenProviderFiredacQuery.Destroy;
 begin
   FQuery.Free;
 
   inherited;
 end;
 
-procedure TBraveProviderFiredacQuery.Open(ASQL: String);
+procedure TKrakenProviderFiredacQuery.Open(ASQL: String);
 begin
   if ASQL <> '' then
   begin
@@ -59,22 +59,22 @@ begin
   FQuery.Open;
 end;
 
-procedure TBraveProviderFiredacQuery.StartTransaction;
+procedure TKrakenProviderFiredacQuery.StartTransaction;
 begin
   FConnection.StartTransaction;
 end;
 
-procedure TBraveProviderFiredacQuery.Commit;
+procedure TKrakenProviderFiredacQuery.Commit;
 begin
   FConnection.Commit;
 end;
 
-function TBraveProviderFiredacQuery.SQL: TBraveProviderFiredacQuery;
+function TKrakenProviderFiredacQuery.SQL: TKrakenProviderFiredacQuery;
 begin
   Result := Self;
 end;
 
-function TBraveProviderFiredacQuery.Add(ASQL: String): TBraveProviderFiredacQuery;
+function TKrakenProviderFiredacQuery.Add(ASQL: String): TKrakenProviderFiredacQuery;
 begin
   Result := Self;
   FQuery.SQL.Add(ASQL);
