@@ -12,13 +12,14 @@ uses
   Kraken.Provider.Query;
 
 type
-  TKrakenProviderType  = Kraken.Consts.TKrakenProviderType;
   TKrakenProvider      = Kraken.Provider.TKrakenProvider;
+  TKrakenProviders     = TObjectList<TKrakenProvider>;
   TKrakenProviderQuery = Kraken.Provider.Query.TKrakenProviderQuery;
+  TKrakenProviderType  = Kraken.Consts.TKrakenProviderType;
 
   TKrakenCore = class
   private
-    FProviders: TObjectList<TKrakenProvider>;
+    FProviders: TKrakenProviders;
 
     class function Builder: TKrakenCore;
   protected
@@ -27,8 +28,10 @@ type
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
 
-    function AddProvider(AProviderType: TKrakenProviderType): TKrakenProvider;
+    function AddProvider: TKrakenProvider;
+    function Providers: TKrakenProviders;
     function Provider(const AIndex: Integer = 0): TKrakenProvider;
+    function ProviderByIdent(const Value: String): TKrakenProvider;
   end;
 
   function TKraken: TKrakenCore;
@@ -50,7 +53,7 @@ end;
 
 procedure TKrakenCore.AfterConstruction;
 begin
-  FProviders := TObjectList<TKrakenProvider>.Create;
+  FProviders := TKrakenProviders.Create;
 end;
 
 procedure TKrakenCore.BeforeDestruction;
@@ -72,9 +75,30 @@ begin
   end;
 end;
 
-function TKrakenCore.AddProvider(AProviderType: TKrakenProviderType): TKrakenProvider;
+function TKrakenCore.ProviderByIdent(const Value: String): TKrakenProvider;
+var
+  LProvider: TKrakenProvider;
 begin
-  Result := FProviders.Items[ FProviders.Add( TKrakenProvider.Create(AProviderType) ) ];
+  Result := nil;
+
+  for LProvider in FProviders do
+  begin
+    if AnsiUpperCase(LProvider.Identification) = AnsiUpperCase(Value) then
+    begin
+      Result := LProvider;
+      Break;
+    end;
+  end;
+end;
+
+function TKrakenCore.Providers: TKrakenProviders;
+begin
+  Result := FProviders;
+end;
+
+function TKrakenCore.AddProvider: TKrakenProvider;
+begin
+  Result := FProviders.Items[FProviders.Add(TKrakenProvider.Create(nil))];
 end;
 
 initialization

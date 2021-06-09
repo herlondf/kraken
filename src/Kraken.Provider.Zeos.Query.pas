@@ -3,7 +3,8 @@ unit Kraken.Provider.Zeos.Query;
 interface
 
 uses
-  Data.DB,
+  //Data.DB,
+  System.Classes,
   System.SysUtils,
 
   ZDataset,
@@ -11,83 +12,50 @@ uses
 
 type
   TKrakenProviderZeosQuery = class(TZQuery)
-    constructor Create(AConnection: TZConnection);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   private
     FConnection: TZConnection;
-    FQuery: TZQuery;
   public
+    function  GetInstance: TZQuery;
     procedure Open(ASQL: String); overload;
     procedure Open; overload;
-    procedure StartTransaction;
-    procedure Commit;
-    function SQL: TKrakenProviderZeosQuery;
-    function Add(ASQL: String): TKrakenProviderZeosQuery;
-    function Clear: TKrakenProviderZeosQuery;
+
   end;
 
 implementation
 
 { TKrakenProviderZeosQuery }
 
-constructor TKrakenProviderZeosQuery.Create(AConnection: TZConnection);
+constructor TKrakenProviderZeosQuery.Create(AOwner: TComponent);
 begin
-  FConnection := AConnection;
+  Inherited Create(AOwner);
 
-  FQuery := TZQuery.Create(nil);
-  FQuery.Connection := FConnection;
+  GetInstance.Connection := TZConnection(AOwner);
 end;
 
 destructor TKrakenProviderZeosQuery.Destroy;
 begin
-  FQuery.Free;
 
   inherited;
 end;
 
-procedure TKrakenProviderZeosQuery.Open;
+function TKrakenProviderZeosQuery.GetInstance: TZQuery;
 begin
-  FQuery.Prepare;
-  FQuery.Open;
+  Result := TZQuery(Self);
 end;
 
 procedure TKrakenProviderZeosQuery.Open(ASQL: String);
 begin
-  if ASQL <> '' then
-  begin
-    FQuery.SQL.Clear;
-    FQuery.SQL.Add(ASQL);
-  end;
-
-  FQuery.Prepare;
-  FQuery.Open;
+  GetInstance.SQL.Clear;
+  GetInstance.SQL.Add(ASQL);
+  GetInstance.Active := True;
 end;
 
-procedure TKrakenProviderZeosQuery.StartTransaction;
+procedure TKrakenProviderZeosQuery.Open;
 begin
-  FConnection.StartTransaction;
-end;
-
-function TKrakenProviderZeosQuery.Clear: TKrakenProviderZeosQuery;
-begin
-  Result := Self;
-  FQuery.SQL.Clear;
-end;
-
-procedure TKrakenProviderZeosQuery.Commit;
-begin
-  FConnection.Commit;
-end;
-
-function TKrakenProviderZeosQuery.SQL: TKrakenProviderZeosQuery;
-begin
-  Result := Self;
-end;
-
-function TKrakenProviderZeosQuery.Add(ASQL: String): TKrakenProviderZeosQuery;
-begin
-  Result := Self;
-  FQuery.SQL.Add(ASQL);
+  GetInstance.Prepare;
+  GetInstance.Active := True;
 end;
 
 end.

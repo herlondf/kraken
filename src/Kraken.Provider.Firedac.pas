@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils,
+  System.Classes,
   System.Generics.Collections,
 
   FireDAC.Comp.Client,
@@ -36,47 +37,52 @@ type
 
   TKrakenProviderFiredac = class(TFDConnection)
   strict private
-    FConnection: TFDConnection;
     FDriver: TFDPhysDriverLink;
   private
+    FIdentification: String;
     FKrakenQuerys: TKrakenQuerys;
-    FKrakenProviderSettings: TKrakenProviderFiredacSettings;
     FKrakenMetadata: TKrakenProviderFiredacMetadata;
+    FKrakenProviderSettings: TKrakenProviderFiredacSettings;
 
-    procedure _SetProviderType(AProviderType: TKrakenProviderType);
     procedure _SetDefaultConfig;
   public
-    constructor Create(AProviderType: TKrakenProviderType);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    function Connect    : TKrakenProviderFiredac;
-    function Disconnect : TKrakenProviderFiredac;
-    function Connected  : Boolean;
+    function GetInstance: TFDConnection;
+
+    function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
+
+    function Identification(const Value: String): TKrakenProviderFiredac; overload;
+    function Identification: String; overload;
+
+    procedure Connect;
+    procedure Disconnect;
+    procedure StartTransaction;
+    procedure Commit;
+    procedure Rollback;
 
     function Settings: TKrakenProviderFiredacSettings;
-    function Query(AIndex: Integer = 0): TKrakenProviderFiredacQuery;
+    function Query(AIndex: Integer): TKrakenProviderFiredacQuery; overload;
+    function Query: TKrakenProviderFiredacQuery; overload;
     function Metadata: TKrakenProviderFiredacMetadata;
-
   end;
 
 implementation
 
 { TKrakenProviderFiredac }
 
-constructor TKrakenProviderFiredac.Create(AProviderType: TKrakenProviderType);
+constructor TKrakenProviderFiredac.Create(AOwner: TComponent);
 begin
-  FConnection := TFDConnection.Create(nil);
+  inherited Create(AOwner);
 
-  _SetProviderType( AProviderType );
+  _SetDefaultConfig;
 
   FKrakenQuerys := TKrakenQuerys.Create();
 end;
 
 destructor TKrakenProviderFiredac.Destroy;
 begin
-  if FConnection <> nil then
-    FreeAndNil(FConnection);
-
   if FKrakenProviderSettings <> nil then
     FreeAndNil(FKrakenProviderSettings);
 
@@ -88,82 +94,65 @@ begin
 
   if FKrakenMetadata <> nil then
     FreeAndNil(FKrakenMetadata);
+
+  inherited;
 end;
 
-function TKrakenProviderFiredac.Connect: TKrakenProviderFiredac;
+procedure TKrakenProviderFiredac.Connect;
 begin
-  Result := Self;
-
   try
-    if not FConnection.Connected then
-      FConnection.Connected := True;
+    if not Connected then
+      GetInstance.Connected := True;
   except
 
   end;
 end;
 
-function TKrakenProviderFiredac.Connected: Boolean;
+procedure TKrakenProviderFiredac.Disconnect;
 begin
   try
-    Result := FConnection.Connected;
-  except
-    Result := False;
-  end;
-end;
-
-function TKrakenProviderFiredac.Disconnect: TKrakenProviderFiredac;
-begin
-  Result := Self;
-  try
-    FConnection.Connected := False;
+    GetInstance.Close;
   except
 
   end;
 end;
 
-function TKrakenProviderFiredac.Query(AIndex: Integer = 0): TKrakenProviderFiredacQuery;
+procedure TKrakenProviderFiredac.StartTransaction;
 begin
   try
-    Result := FKrakenQuerys.Items[AIndex];
+    GetInstance.StartTransaction;
   except
-    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderFiredacQuery.Create(FConnection) ) ]
+
   end;
 end;
 
-function TKrakenProviderFiredac.Settings: TKrakenProviderFiredacSettings;
+procedure TKrakenProviderFiredac.Commit;
 begin
-  if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderFiredacSettings.Create(FConnection);
+  try
+    GetInstance.Commit;
+  except
 
-  Result := FKrakenProviderSettings;
-end;
-
-procedure TKrakenProviderFiredac._SetDefaultConfig;
-begin
-  FConnection.LoginPrompt := False;
-
-  {Configuracao obrigatoria do autorecover de conexao}
-  FConnection.ResourceOptions.AutoReconnect  := True;
-  FConnection.ResourceOptions.KeepConnection := True;
-
-  { No caso do PostgreSQL, foi usado para capturar nome da tabela em querys        }
-  { http://docwiki.embarcadero.com/RADStudio/Sydney/en/Extended_Metadata_(FireDAC) }
-  FConnection.Params.Add('ExtendedMetadata=True');
-
-  {Configuracao de rodar a query em thread separada - amNonBlocking}
-  FConnection.ResourceOptions.CmdExecMode := amBlocking;
-
-  TxOptions.AutoCommit := False;
-end;
-
-procedure TKrakenProviderFiredac._SetProviderType(AProviderType: TKrakenProviderType);
-begin
-  {$IF DEFINED (KRAKEN_FIREDAC)}
-  case AProviderType of
-    ptPostgres: TKrakenProviderTypes.Postgres(FConnection, FDriver);
-    ptFirebird: TKrakenProviderTypes.Firebird(FConnection, FDriver);
   end;
-  {$ENDIF}
+end;
+
+procedure TKrakenProviderFiredac.Rollback;
+begin
+  try
+    GetInstance.Rollback;
+  except
+
+  end;
+end;
+
+
+function TKrakenProviderFiredac.GetInstance: TFDConnection;
+begin
+  Result := TFDConnection(Self);
+end;
+
+function TKrakenProviderFiredac.Identification: String;
+begin
+  Result := FIdentification;
 end;
 
 function TKrakenProviderFiredac.Metadata: TKrakenProviderFiredacMetadata;
@@ -172,6 +161,67 @@ begin
     FKrakenMetadata := TKrakenProviderFiredacMetadata.Create(Self);
 
   Result := FKrakenMetadata;
+end;
+
+function TKrakenProviderFiredac.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
+begin
+  Result := Self;
+  {$IF DEFINED (KRAKEN_FIREDAC)}
+  case AProviderType of
+    ptPostgres: TKrakenProviderTypes.Postgres(Self, FDriver);
+    ptFirebird: TKrakenProviderTypes.Firebird(Self, FDriver);
+  end;
+  {$ENDIF}
+end;
+
+function TKrakenProviderFiredac.Query: TKrakenProviderFiredacQuery;
+begin
+  try
+    Result := FKrakenQuerys.First;
+  except
+    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderFiredacQuery.Create(Self) ) ]
+  end;
+end;
+
+function TKrakenProviderFiredac.Identification(const Value: String): TKrakenProviderFiredac;
+begin
+  Result := Self;
+  FIdentification := Value;
+end;
+
+function TKrakenProviderFiredac.Query(AIndex: Integer): TKrakenProviderFiredacQuery;
+begin
+  try
+    Result := FKrakenQuerys.Items[AIndex];
+  except
+    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderFiredacQuery.Create(Self) ) ]
+  end;
+end;
+
+function TKrakenProviderFiredac.Settings: TKrakenProviderFiredacSettings;
+begin
+  if FKrakenProviderSettings = nil then
+    FKrakenProviderSettings := TKrakenProviderFiredacSettings.Create(Self);
+
+  Result := FKrakenProviderSettings;
+end;
+
+procedure TKrakenProviderFiredac._SetDefaultConfig;
+begin
+  GetInstance.LoginPrompt := False;
+
+  {Configuracao obrigatoria do autorecover de conexao}
+  GetInstance.ResourceOptions.AutoReconnect  := True;
+  GetInstance.ResourceOptions.KeepConnection := True;
+
+  { No caso do PostgreSQL, foi usado para capturar nome da tabela em querys        }
+  { http://docwiki.embarcadero.com/RADStudio/Sydney/en/Extended_Metadata_(FireDAC) }
+  GetInstance.Params.Add('ExtendedMetadata=True');
+
+  {Configuracao de rodar a query em thread separada - amNonBlocking}
+  GetInstance.ResourceOptions.CmdExecMode := amBlocking;
+
+  GetInstance.TxOptions.AutoCommit := False;
 end;
 
 end.
