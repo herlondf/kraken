@@ -12,7 +12,7 @@ type
   TFDStanAsyncMode = FireDAC.Stan.Intf.TFDStanAsyncMode;
 
   TKrakenProviderFiredacSettings = class
-    constructor Create(AConnetion: TFDCustomConnection; AIniPath: String = '');
+    constructor Create(AConnetion: TFDCustomConnection);
     destructor Destroy; override;
   private
     FIniFile    : TIniFile;
@@ -46,6 +46,8 @@ type
     function Database(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Database: String; overload;
 
+    function IniPath(const APath: String): TKrakenProviderFiredacSettings;
+
     ///<summary>            Define o modo de bloqueio da execucao da query                        </summary>
     ///<param name="AMode"> amBlocking, amNonBlocking, amCancelDialog, amAsync                    </param>
     ///<remarks>            Default: amBlocking                                                   </remarks>
@@ -67,12 +69,9 @@ implementation
 
 { TKrakenProviderFiredacSettings }
 
-constructor TKrakenProviderFiredacSettings.Create(AConnetion: TFDCustomConnection; AIniPath: String);
+constructor TKrakenProviderFiredacSettings.Create(AConnetion: TFDCustomConnection);
 begin
   FConnection := AConnetion;
-
-  if AIniPath <> '' then
-    FIniFile := TIniFile.Create(AIniPath);
 end;
 
 destructor TKrakenProviderFiredacSettings.Destroy;
@@ -109,6 +108,14 @@ end;
 function TKrakenProviderFiredacSettings.Host: String;
 begin
   Result := FHost;
+end;
+
+function TKrakenProviderFiredacSettings.IniPath(const APath: String): TKrakenProviderFiredacSettings;
+begin
+  Result := Self;
+
+  if APath <> '' then
+    FIniFile := TIniFile.Create(APath);
 end;
 
 function TKrakenProviderFiredacSettings.Port(const APort: Integer): TKrakenProviderFiredacSettings;
