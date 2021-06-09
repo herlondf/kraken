@@ -9,8 +9,7 @@ uses
 
 type
   TKrakenProviderZeosSettings = class
-    constructor Create(AConnetion: TZConnection); overload;
-    constructor Create(AConnetion: TZConnection; AIniPath: String); overload;
+    constructor Create(AConnetion: TZConnection);
     destructor Destroy; override;
   private
     FIniFile    : TIniFile;
@@ -43,21 +42,27 @@ type
     function Database(const ADatabase: String): TKrakenProviderZeosSettings; overload;
     function Database(const ASection, AIdent, ADefault: String): TKrakenProviderZeosSettings; overload;
     function Database: String; overload;
+
+    function IniPath(const APath: String): TKrakenProviderZeosSettings;
+
+    ///<summary>            Define o autocommit de transacoes (insert, update, delete)            </summary>
+    ///<param name="AMode"> Se falso, deve usar o StartTransaction e Commit                       </param>
+    ///<remarks>            Default: False                                                        </remarks>
+    function AutoCommit(const AMode: Boolean): TKrakenProviderZeosSettings;
   end;
 
 implementation
 
 { TKrakenProviderZeosSettings }
 
+function TKrakenProviderZeosSettings.AutoCommit(const AMode: Boolean): TKrakenProviderZeosSettings;
+begin
+  FConnection.AutoCommit := AMode;
+end;
+
 constructor TKrakenProviderZeosSettings.Create(AConnetion: TZConnection);
 begin
   FConnection := AConnetion;
-end;
-
-constructor TKrakenProviderZeosSettings.Create(AConnetion: TZConnection; AIniPath: String);
-begin
-  FConnection := AConnetion;
-  FIniFile.Create(AIniPath);
 end;
 
 destructor TKrakenProviderZeosSettings.Destroy;
@@ -71,7 +76,7 @@ begin
   Result := FIniFile <> nil;
 
   if not Result then
-    raise Exception.Create('Has not inifile assigned. Try another create method.');
+    raise Exception.Create('Has not inifile assigned. Try pass parameter on create method.');
 end;
 
 function TKrakenProviderZeosSettings.Host(const AHost: String): TKrakenProviderZeosSettings;
@@ -94,6 +99,14 @@ end;
 function TKrakenProviderZeosSettings.Host: String;
 begin
   Result := FHost;
+end;
+
+function TKrakenProviderZeosSettings.IniPath(const APath: String): TKrakenProviderZeosSettings;
+begin
+  Result := Self;
+
+  if APath <> '' then
+    FIniFile := TIniFile.Create(APath);
 end;
 
 function TKrakenProviderZeosSettings.Port(const APort: Integer): TKrakenProviderZeosSettings;

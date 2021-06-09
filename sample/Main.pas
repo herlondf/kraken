@@ -23,25 +23,40 @@ implementation
 {$R *.dfm}
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  LNome: String;
 begin
   TKraken
-    .AddProvider( TKrakenProviderType.ptPostgres )
+    .AddProvider
+    .ProviderType( TKrakenProviderType.ptPostgres )
+    .Identification('Sample')
     .Settings
-      .Host('127.0.0.1')
-      .Port(5432)
-      .Username('your_username')
-      .Password('your_password')
-      .Database('your_database');
 
   TKraken
-    .Provider()
+    .ProviderByIdent('Sample')
     .Connect;
 
-  TKraken
-    .Provider()
-    .Query()
-      .SQL.Add('SELECT * FROM yout_table')
-      .Open;
+  with TKraken.ProviderByIdent('Sample').Query() do
+  begin
+    try
+      TKraken.ProviderByIdent('Sample').StartTransaction;
+      try
+        SQL.Add('SELECT * FROM nota_fiscal');
+        Open;
+
+
+        while not Eof do
+        begin
+          //LNome := FieldByName('').AsString;
+          Next;
+        end;
+      finally
+        TKraken.ProviderByIdent('Sample').Commit;
+      end;
+    except
+      TKraken.ProviderByIdent('Sample').Rollback;
+    end;
+  end;
 end;
 
 end.
