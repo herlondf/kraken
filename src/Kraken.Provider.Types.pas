@@ -36,7 +36,7 @@ implementation
 
 class procedure TKrakenProviderTypes.Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
 begin
-  ADriver                := TFDPhysPgDriverLink.Create(nil);
+  ADriver                := TFDPhysPgDriverLink.Create(AConnection);
   ADriver.Name           := 'PGDriver';
   ADriver.VendorLib      := 'libpq.dll';
   AConnection.DriverName := 'PG';
@@ -44,7 +44,7 @@ end;
 
 class procedure TKrakenProviderTypes.Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
 begin
-  ADriver      := TFDPhysFBDriverLink.Create(nil);
+  ADriver      := TFDPhysFBDriverLink.Create(AConnection);
   ADriver.Name := 'FBDriver';
 
   AConnection.DriverName := 'FB';

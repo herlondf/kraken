@@ -83,7 +83,7 @@ begin
 
   for LProvider in FProviders do
   begin
-    if AnsiUpperCase(LProvider.Identification) = AnsiUpperCase(Value) then
+    if AnsiUpperCase(LProvider.Id) = AnsiUpperCase(Value) then
     begin
       Result := LProvider;
       Break;
