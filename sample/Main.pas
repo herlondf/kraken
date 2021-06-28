@@ -24,9 +24,9 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  TKraken.AddProvider
+  TKraken
+    .Provider('base')
     .ProviderType( TKrakenProviderType.ptPostgres )
-    .Id('base')
     .Settings
       .Host('127.0.0.1')
       .Port(5432)
@@ -34,10 +34,12 @@ begin
       .Password('vi7700')
       .Database('massas_jucurutu_nfce');
 
-  TKraken.ProviderByIdent('base')
+  TKraken.Provider('base')
     .Connect;
 
-  with TKraken.ProviderByIdent('base').Query do
+  TKraken.Provider('base').Disconnect;
+
+  with TKraken.Provider('base').Query do
   begin
     SQL.Add('INSERT INTO teste(teste1, teste2) VALUES(''a'', ''u'') RETURNING id');
     Open();
