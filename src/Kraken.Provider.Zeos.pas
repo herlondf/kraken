@@ -20,22 +20,21 @@ type
   TKrakenQuerys = TObjectList<TKrakenProviderZeosQuery>;
 
   TKrakenProviderZeos = class(TZConnection)
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   private
-    FIdentification: String;
-    FKrakenQuerys: TKrakenQuerys;
+    FId                    : String;
+    FKrakenQuerys          : TKrakenQuerys;
     FKrakenProviderSettings: TKrakenProviderZeosSettings;
 
     procedure _SetDefaultConfig;
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
     function GetInstance: TZConnection;
-
     function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
+    function Settings: TKrakenProviderZeosSettings;
 
-    function Identification(const Value: String): TKrakenProviderZeos; overload;
-    function Identification: String; overload;
+    function Id(const Value: String): TKrakenProviderZeos; overload;
+    function Id: String; overload;
 
     procedure Connect;
     procedure Disconnect;
@@ -43,9 +42,10 @@ type
     procedure Commit;
     procedure Rollback;
 
-    function Settings: TKrakenProviderZeosSettings;
-    function Query(AIndex: Integer): TKrakenProviderZeosQuery; overload;
+    function Querys: TKrakenQuerys;
     function Query: TKrakenProviderZeosQuery; overload;
+    function Query(const AId: String): TKrakenProviderZeosQuery; overload;
+    function Query(const AId: Integer): TKrakenProviderZeosQuery; overload;
   end;
 
 implementation
@@ -84,11 +84,6 @@ begin
   Result := TZConnection(Self);
 end;
 
-function TKrakenProviderZeos.Identification: String;
-begin
-  Result := FIdentification;
-end;
-
 function TKrakenProviderZeos.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
 begin
   Result := Self;
@@ -100,36 +95,24 @@ begin
   {$ENDIF}
 end;
 
-function TKrakenProviderZeos.Query: TKrakenProviderZeosQuery;
-begin
-  try
-    Result := FKrakenQuerys.First;
-  except
-    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderZeosQuery.Create(Self) ) ]
-  end;
-end;
-
-function TKrakenProviderZeos.Identification(const Value: String): TKrakenProviderZeos;
-begin
-  Result := Self;
-  FIdentification := Value;
-end;
-
-function TKrakenProviderZeos.Query(AIndex: Integer ): TKrakenProviderZeosQuery;
-begin
-  try
-    Result := FKrakenQuerys.Items[AIndex];
-  except
-    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderZeosQuery.Create(Self) ) ]
-  end;
-end;
-
 function TKrakenProviderZeos.Settings: TKrakenProviderZeosSettings;
 begin
   if FKrakenProviderSettings = nil then
     FKrakenProviderSettings := TKrakenProviderZeosSettings.Create(Self);
 
   Result := FKrakenProviderSettings;
+end;
+
+function TKrakenProviderZeos.Id: String;
+begin
+  Result := FId;
+end;
+
+function TKrakenProviderZeos.Id(const Value: String): TKrakenProviderZeos;
+begin
+  Result := Self;
+  FId    := Value;
+  Self.Name := 'ZConn' + FId;
 end;
 
 procedure TKrakenProviderZeos.Connect;
@@ -154,7 +137,8 @@ end;
 procedure TKrakenProviderZeos.StartTransaction;
 begin
   try
-    GetInstance.StartTransaction;
+    if GetInstance.InTransaction then
+      GetInstance.StartTransaction;
   except
 
   end;
@@ -177,7 +161,48 @@ begin
   except
 
   end;
-
 end;
+
+function TKrakenProviderZeos.Querys: TKrakenQuerys;
+begin
+  Result := FKrakenQuerys;
+end;
+
+function TKrakenProviderZeos.Query: TKrakenProviderZeosQuery;
+begin
+  if FKrakenQuerys.Count > 0 then
+    Result := FKrakenQuerys.First
+  else
+    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderZeosQuery.Create(Self) ) ];
+end;
+
+function TKrakenProviderZeos.Query(const AId: String): TKrakenProviderZeosQuery;
+var
+  LKrakenQuery: TKrakenProviderZeosQuery;
+begin
+  Result := nil;
+
+  for LKrakenQuery in FKrakenQuerys do
+  begin
+    if AnsiUpperCase(LKrakenQuery.Id) = AnsiUpperCase(AId) then
+    begin
+      Result := LKrakenQuery;
+      Break;
+    end;
+  end;
+
+  if Result = nil then
+  begin
+    LKrakenQuery := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderZeosQuery.Create(Self) ) ];
+    LKrakenQuery.Id(AId);
+    Result := LKrakenQuery;
+  end;
+end;
+
+function TKrakenProviderZeos.Query(const AId: Integer): TKrakenProviderZeosQuery;
+begin
+  Result := Query( IntToStr( AId ) );
+end;
+
 
 end.

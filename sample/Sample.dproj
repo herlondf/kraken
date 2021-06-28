@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E26DC763-8FDE-48C2-B54B-B8426A1D450D}</ProjectGuid>
+        <ProjectGuid>{B0A55EE9-4357-436C-838E-E897D1FE2528}</ProjectGuid>
         <ProjectVersion>18.8</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <MainSource>Sample.dpr</MainSource>
@@ -58,7 +58,7 @@
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <SanitizedProjectName>Sample</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\src;C:\BraveProjects\Kraken\src\Zeos\component;C:\BraveProjects\Kraken\src\Zeos\core;C:\BraveProjects\Kraken\src\Zeos\dbc;C:\BraveProjects\Kraken\src\Zeos\parsesql;C:\BraveProjects\Kraken\src\Zeos\plain;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>C:\BraveProjects\Kraken\src\Zeos\component;C:\BraveProjects\Kraken\src\Zeos\core;C:\BraveProjects\Kraken\src\Zeos\dbc;C:\BraveProjects\Kraken\src\Zeos\parsesql;C:\BraveProjects\Kraken\src\Zeos\plain;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1046</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
@@ -67,6 +67,7 @@
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
     </PropertyGroup>
@@ -106,6 +107,20 @@
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="..\src\Kraken.Consts.pas"/>
+        <DCCReference Include="..\src\Kraken.Core.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Firedac.Metadata.Entity.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Firedac.Metadata.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Firedac.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Firedac.Query.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Firedac.Settings.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Query.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Types.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Zeos.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Zeos.Query.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Zeos.Settings.pas"/>
+        <DCCReference Include="..\src\Kraken.Types.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

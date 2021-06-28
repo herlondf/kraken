@@ -28,10 +28,10 @@ type
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
 
-    function AddProvider: TKrakenProvider;
     function Providers: TKrakenProviders;
-    function Provider(const AIndex: Integer = 0): TKrakenProvider;
-    function ProviderByIdent(const Value: String): TKrakenProvider;
+
+    function Provider(const AId: Integer = -1): TKrakenProvider; overload;
+    function Provider(const AId: String  = ''): TKrakenProvider; overload;
   end;
 
   function TKraken: TKrakenCore;
@@ -39,14 +39,14 @@ type
 implementation
 
 var
-  FKrakenCore: TKrakenCore;
+  FInstnace: TKrakenCore;
 
 function TKraken: TKrakenCore;
 begin
-  if not Assigned(FKrakenCore) then
-    FKrakenCore := TKrakenCore.Builder;
+  if not Assigned(FInstnace) then
+    FInstnace := TKrakenCore.Builder;
 
-  Result := FKrakenCore;
+  Result := FInstnace;
 end;
 
 { TKrakenCore }
@@ -66,16 +66,7 @@ begin
   Result := TKrakenCore.Create;
 end;
 
-function TKrakenCore.Provider(const AIndex: Integer): TKrakenProvider;
-begin
-  try
-    Result := FProviders.Items[AIndex];
-  except
-    raise Exception.Create('Dont have provider with this index.');
-  end;
-end;
-
-function TKrakenCore.ProviderByIdent(const Value: String): TKrakenProvider;
+function TKrakenCore.Provider(const AId: String): TKrakenProvider;
 var
   LProvider: TKrakenProvider;
 begin
@@ -83,12 +74,24 @@ begin
 
   for LProvider in FProviders do
   begin
-    if AnsiUpperCase(LProvider.Identification) = AnsiUpperCase(Value) then
+    if AnsiUpperCase(LProvider.Id) = AnsiUpperCase(AId) then
     begin
       Result := LProvider;
       Break;
     end;
   end;
+
+  if Result = nil then
+  begin
+    LProvider := FProviders.Items[ FProviders.Add( TKrakenProvider.Create(nil) ) ];
+    LProvider.Id(AId);
+    Result := LProvider;
+  end;
+end;
+
+function TKrakenCore.Provider(const AId: Integer): TKrakenProvider;
+begin
+
 end;
 
 function TKrakenCore.Providers: TKrakenProviders;
@@ -96,15 +99,10 @@ begin
   Result := FProviders;
 end;
 
-function TKrakenCore.AddProvider: TKrakenProvider;
-begin
-  Result := FProviders.Items[FProviders.Add(TKrakenProvider.Create(nil))];
-end;
-
 initialization
 
 finalization
-  if Assigned(FKrakenCore) then
-    FKrakenCore.DisposeOf;
+  if Assigned(FInstnace) then
+    FInstnace.DisposeOf;
 
 end.
