@@ -30,7 +30,7 @@ type
 
     function Providers: TKrakenProviders;
 
-    function Provider(const AId: Integer = -1): TKrakenProvider; overload;
+    function Provider(const AId: Integer ): TKrakenProvider; overload;
     function Provider(const AId: String  = ''): TKrakenProvider; overload;
   end;
 
@@ -91,7 +91,7 @@ end;
 
 function TKrakenCore.Provider(const AId: Integer): TKrakenProvider;
 begin
-
+  Result := Provider( IntToStr(AId) );
 end;
 
 function TKrakenCore.Providers: TKrakenProviders;
