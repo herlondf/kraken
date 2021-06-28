@@ -11,32 +11,32 @@ uses
   System.Timespan,
   System.StrUtils,
 
+  {FireDAC}
   FireDAC.Comp.Client,
   FireDAC.Phys.Intf,
 
-  {KrakenDAC}
+  {Kraken}
   Kraken.Consts,
   Kraken.Provider.Firedac.Metadata.Entity;
 
 type
   TKrakenProviderFiredacMetadata = class(TFDMetaInfoQuery)
-    constructor Create(AConnection: TFDConnection);
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  strict private
-    FConnection: TFDConnection;
-
-    FOnLog     : TNotifyEvent;
-    procedure SetOnLog(const Value: TNotifyEvent);
   private
+    FId               : String;
     FEntitySchemas    : TKrakenEntitySchemas;
     FEntityTables     : TKrakenEntityTables;
     FEntityColumns    : TKrakenEntityColumns;
     FEntityPKs        : TKrakenEntityPKs;
-    FPKFields   : TKrakenEntityPKFields;
+    FPKFields         : TKrakenEntityPKFields;
     FEntityFKs        : TKrakenEntityFKs;
     FEntityFKFields   : TKrakenEntityFKFields;
     FEntityGenerators : TKrakenEntityGenerators;
   public
+    function Id(const Value: String): TKrakenProviderFiredacMetadata; overload;
+    function Id: String; overload;
+
     function EntitySchemas    : TKrakenEntitySchemas;
     function EntityTables     : TKrakenEntityTables;
     function EntityColumns    : TKrakenEntityColumns;
@@ -64,10 +64,11 @@ implementation
 
 { TKrakenProviderFiredacMetadata }
 
-constructor TKrakenProviderFiredacMetadata.Create(AConnection: TFDConnection);
+constructor TKrakenProviderFiredacMetadata.Create(AOwner: TComponent);
 begin
-  FConnection := AConnection;
-  Self.Connection := FConnection;
+  Inherited Create(AOwner);
+
+  Connection  := TFDConnection( AOwner );
 end;
 
 destructor TKrakenProviderFiredacMetadata.Destroy;
@@ -162,11 +163,6 @@ begin
     FEntityFKFields := TKrakenEntityFKFields.Create();
 
   Result := FEntityFKFields;
-end;
-
-procedure TKrakenProviderFiredacMetadata.SetOnLog(const Value: TNotifyEvent);
-begin
-  FOnLog := Value;
 end;
 
 procedure TKrakenProviderFiredacMetadata.Schemas(const ASchema: String = '');
@@ -540,6 +536,17 @@ begin
   except
 
   end;
+end;
+
+function TKrakenProviderFiredacMetadata.Id: String;
+begin
+  Result := FId;
+end;
+
+function TKrakenProviderFiredacMetadata.Id(const Value: String): TKrakenProviderFiredacMetadata;
+begin
+  Result := Self;
+  FId    := Value;
 end;
 
 end.
