@@ -15,7 +15,6 @@ type
     destructor Destroy; override;
   private
     FId        : String;
-    FConnection: TZConnection;
   public
     function  GetInstance: TZQuery;
 
@@ -145,17 +144,7 @@ begin
     GetInstance.SQL.Add(ASQL);
     GetInstance.Active := True;
   except
-    if not FConnection.Connected then
-    begin
-      FConnection.Connect;
-
-      if not GetInstance.Prepared then
-        GetInstance.Prepare;
-
-      GetInstance.SQL.Clear;
-      GetInstance.SQL.Add(ASQL);
-      GetInstance.Active := True;
-    end;
+    raise;
   end;
 end;
 
@@ -167,15 +156,7 @@ begin
 
     GetInstance.Active := True;
   except
-    if not FConnection.Connected then
-    begin
-      FConnection.Connect;
-
-      if not GetInstance.Prepared then
-      GetInstance.Prepare;
-
-      GetInstance.Active := True;
-    end;
+    raise;
   end;
 end;
 
@@ -184,11 +165,7 @@ begin
   try
     GetInstance.ExecSQL;
   except
-    if not FConnection.Connected then
-    begin
-      FConnection.Connect;
-      GetInstance.ExecSQL;
-    end;
+    raise;
   end;
 end;
 
