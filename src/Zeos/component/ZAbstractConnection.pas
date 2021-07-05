@@ -181,7 +181,6 @@ type
 
     procedure CheckConnected;
     procedure CheckAutoCommitMode;
-    function  CheckIsAutoCommit: Boolean;
     procedure CheckNonAutoCommitMode;
 
     function ConstructURL(const UserName, Password: string): string;
@@ -972,19 +971,12 @@ begin
     raise EZDatabaseError.Create(SInvalidOpInNonAutoCommit);
 end;
 
-function TZAbstractConnection.CheckIsAutoCommit: Boolean;
-begin
-  Result := FAutoCommit and (FExplicitTransactionCounter = 0);
-end;
-
 {**
   Commits the current transaction.
 }
 procedure TZAbstractConnection.StartTransaction;
 begin
-  //CheckAutoCommitMode;
-  if not CheckIsAutoCommit then
-    Exit;
+  CheckAutoCommitMode;
 
   if FExplicitTransactionCounter = 0 then
     AutoCommit := False;
@@ -1003,9 +995,7 @@ var
   i: Integer;
 begin
   CheckConnected;
-  //CheckNonAutoCommitMode;
-  if not CheckIsAutoCommit then
-    Exit;
+  CheckNonAutoCommitMode;
 
   ExplicitTran := FExplicitTransactionCounter > 0;
   if FExplicitTransactionCounter < 2 then
@@ -1059,9 +1049,7 @@ var
   ExplicitTran: Boolean;
 begin
   CheckConnected;
-  //CheckNonAutoCommitMode;
-  if not CheckIsAutoCommit then
-    Exit;
+  CheckNonAutoCommitMode;
 
   ExplicitTran := FExplicitTransactionCounter > 0;
   if FExplicitTransactionCounter < 2 then
