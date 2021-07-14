@@ -16,7 +16,10 @@ uses
   Kraken.Provider.Zeos in '..\src\Kraken.Provider.Zeos.pas',
   Kraken.Provider.Zeos.Query in '..\src\Kraken.Provider.Zeos.Query.pas',
   Kraken.Provider.Zeos.Settings in '..\src\Kraken.Provider.Zeos.Settings.pas',
-  Kraken.Types in '..\src\Kraken.Types.pas';
+  Kraken.Types in '..\src\Kraken.Types.pas',
+  Kraken.Provider.RequestHTTP in '..\src\Kraken.Provider.RequestHTTP.pas',
+  Kraken.Provider.RequestHTTP.Settings in '..\src\Kraken.Provider.RequestHTTP.Settings.pas',
+  Kraken.Provider.RequestHTTP.Query in '..\src\Kraken.Provider.RequestHTTP.Query.pas';
 
 {$R *.res}
 
