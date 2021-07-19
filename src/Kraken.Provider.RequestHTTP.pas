@@ -7,8 +7,6 @@ uses
   System.SysUtils,
   System.Generics.Collections,
 
-  ZConnection,
-
   Kraken.Consts,
   Kraken.Provider.RequestHTTP.Settings,
   Kraken.Provider.RequestHTTP.Query,
@@ -17,8 +15,8 @@ uses
 type
   TKrakenQuerys = TObjectList<TKrakenProviderRequestHTTPQuery>;
 
-  TKrakenProviderRequestHTTP = class(TZConnection)
-      constructor Create(AOwner: TComponent); override;
+  TKrakenProviderRequestHTTP = class
+      constructor Create(AOwner: TComponent);
       destructor Destroy; override;
     private
       FId                    : String;
@@ -28,7 +26,7 @@ type
 
       procedure _SetDefaultConfig;
     public
-      function GetInstance: TZConnection;
+      function GetInstance: TKrakenProviderRequestHTTP;
       function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderRequestHTTP;
       function Settings: TKrakenProviderRequestHTTPSettings;
 
@@ -52,21 +50,8 @@ implementation
 
 { TKrakenProviderRequestHTTP }
 
-procedure TKrakenProviderRequestHTTP.Commit;
-begin
-  if FKrakenQuerys.Count > 0 then
-    FKrakenQuerys.First.StartTransaction := False;
-end;
-
-procedure TKrakenProviderRequestHTTP.Connect;
-begin
-
-end;
-
 constructor TKrakenProviderRequestHTTP.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-
   _SetDefaultConfig;
 
   FKrakenQuerys := TKrakenQuerys.Create();
@@ -83,14 +68,25 @@ begin
   inherited;
 end;
 
+procedure TKrakenProviderRequestHTTP.Commit;
+begin
+  if FKrakenQuerys.Count > 0 then
+    FKrakenQuerys.First.StartTransaction(False);
+end;
+
+procedure TKrakenProviderRequestHTTP.Connect;
+begin
+
+end;
+
 procedure TKrakenProviderRequestHTTP.Disconnect;
 begin
 
 end;
 
-function TKrakenProviderRequestHTTP.GetInstance: TZConnection;
+function TKrakenProviderRequestHTTP.GetInstance: TKrakenProviderRequestHTTP;
 begin
-  Result := TZConnection(Self);
+  Result := Self;
 end;
 
 function TKrakenProviderRequestHTTP.Id: String;
@@ -102,7 +98,6 @@ function TKrakenProviderRequestHTTP.Id(const Value: String): TKrakenProviderRequ
 begin
   Result := Self;
   FId    := Value;
-  Self.Name := 'ZConn' + FId;
 end;
 
 function TKrakenProviderRequestHTTP.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderRequestHTTP;
@@ -132,8 +127,9 @@ begin
 
   if Result = nil then
   begin
-    LKrakenQuery := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderRequestHTTPQuery.Create(Self) ) ];
+    LKrakenQuery := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderRequestHTTPQuery.Create(nil) ) ];
     LKrakenQuery.Id(AId);
+    LKrakenQuery.Endpoint( Settings.URLRemoto );
     Result := LKrakenQuery;
   end;
 end;
@@ -143,7 +139,9 @@ begin
   if FKrakenQuerys.Count > 0 then
     Result := FKrakenQuerys.First
   else
-    Result := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderRequestHTTPQuery.Create(Self) ) ];
+  begin
+    Result := Query('Default');
+  end;
 end;
 
 function TKrakenProviderRequestHTTP.Querys: TKrakenQuerys;
@@ -154,13 +152,13 @@ end;
 procedure TKrakenProviderRequestHTTP.Rollback;
 begin
   if FKrakenQuerys.Count > 0 then
-    FKrakenQuerys.First.StartTransaction := False;
+    FKrakenQuerys.First.StartTransaction(False);
 end;
 
 function TKrakenProviderRequestHTTP.Settings: TKrakenProviderRequestHTTPSettings;
 begin
   if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderRequestHTTPSettings.Create(Self);
+    FKrakenProviderSettings := TKrakenProviderRequestHTTPSettings.Create;
 
   Result := FKrakenProviderSettings;
 end;
@@ -168,7 +166,7 @@ end;
 procedure TKrakenProviderRequestHTTP.StartTransaction;
 begin
   if FKrakenQuerys.Count > 0 then
-    FKrakenQuerys.First.StartTransaction := true;
+    FKrakenQuerys.First.StartTransaction(True);
 end;
 
 procedure TKrakenProviderRequestHTTP._SetDefaultConfig;

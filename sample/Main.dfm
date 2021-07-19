@@ -54,31 +54,31 @@ object Form1: TForm1
     Height = 193
     TabOrder = 1
   end
-  object Button1: TButton
+  object btnOpen: TButton
     Left = 639
     Top = 30
     Width = 122
     Height = 25
     Caption = 'OPEN RequestHTTP'
     TabOrder = 2
-    OnClick = Button1Click
+    OnClick = btnOpenClick
   end
-  object Button2: TButton
+  object btnExecSQL: TButton
     Left = 639
     Top = 61
     Width = 122
     Height = 25
     Caption = 'EXECSQL RequestHTTP'
     TabOrder = 3
-    OnClick = Button2Click
+    OnClick = btnExecSQLClick
   end
-  object Button3: TButton
+  object btnOpenStart: TButton
     Left = 639
     Top = 92
     Width = 122
     Height = 25
     Caption = 'OPEN+Start Request'
     TabOrder = 4
-    OnClick = Button3Click
+    OnClick = btnOpenStartClick
   end
 end
