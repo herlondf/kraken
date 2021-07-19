@@ -58,8 +58,8 @@
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <SanitizedProjectName>Sample</SanitizedProjectName>
-        <DCC_UnitSearchPath>C:\BraveProjects\Kraken\src\Zeos\component;C:\BraveProjects\Kraken\src\Zeos\core;C:\BraveProjects\Kraken\src\Zeos\dbc;C:\BraveProjects\Kraken\src\Zeos\parsesql;C:\BraveProjects\Kraken\src\Zeos\plain;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1046</VerInfo_Locale>
+        <DCC_UnitSearchPath>C:\BraveProjects\Kraken\src\Zeos\;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
@@ -109,13 +109,18 @@
         </DCCReference>
         <DCCReference Include="..\src\Kraken.Consts.pas"/>
         <DCCReference Include="..\src\Kraken.Core.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Fields.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Firedac.Metadata.Entity.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Firedac.Metadata.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Firedac.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Firedac.Query.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Firedac.Settings.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.Param.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Query.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.RequestHTTP.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.RequestHTTP.Query.pas"/>
+        <DCCReference Include="..\src\Kraken.Provider.RequestHTTP.Settings.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Types.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Zeos.pas"/>
         <DCCReference Include="..\src\Kraken.Provider.Zeos.Query.pas"/>
@@ -142,18 +147,10 @@
                     <Source Name="MainSource">Sample.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madBasic_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madBasic_.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madHelp_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madHelp_.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExceptIde_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExceptIde_.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExcept_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExcept_.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madDisAsm_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madDisAsm_.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExceptVcl_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExceptVcl_.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Componentes\OTA\boss-ide-1.4.1\Win32\Debug\boss_ide.bpl">File C:\Componentes\OTA\boss-ide-1.4.1\Win32\Debug\boss_ide.bpl not found</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclsoapmidas260.bpl">Embarcadero SOAP Midas Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclsoapserver260.bpl">Embarcadero SOAP Server Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k260.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp260.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExceptWizard_.bpl">File C:\Users\Public\Documents\Embarcadero\Studio\20.0\Bpl\madExceptWizard_.bpl not found</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">

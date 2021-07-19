@@ -45,7 +45,7 @@
 {$ENDIF}
 
 {$IFNDEF UNIX}
-{$I ..\Zeos.inc}
+{$I Zeos.inc}
 {$ELSE}
-{$I ../Zeos.inc}
+{$I Zeos.inc}
 {$ENDIF}
