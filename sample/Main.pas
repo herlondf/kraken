@@ -21,13 +21,13 @@ type
     memSaida: TMemo;
     Label1: TLabel;
     Label2: TLabel;
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
+    btnOpen: TButton;
+    btnExecSQL: TButton;
+    btnOpenStart: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure btnOpenClick(Sender: TObject);
+    procedure btnExecSQLClick(Sender: TObject);
+    procedure btnOpenStartClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -41,7 +41,7 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.btnOpenClick(Sender: TObject);
 begin
   TKraken
     .Provider('base')
@@ -51,30 +51,35 @@ begin
       .Port(5432)
       .Username('postgres')
       .Password('vi7700')
-      .Database('VIGGO_1805')
+      .Database('viggo')
       .URLRemoto('http://localhost:9000/consulta');
 
   with TKraken.Provider('base').Query do
   begin
     SQL.Clear;
-    SQL.Add(memConsulta.Lines.GetText);
+    SQL.Add('SELECT * FROM participante WHERE codigo > :codigo');
+    ParamByName('codigo').AsInteger := 1;
+
     memSaida.Lines.Clear;
 
     try
-      Open();
+      try
+        Open();
+      finally
+        while not Eof do
+        begin
+          memSaida.Lines.Add( FieldByName('nome').AsString );
+
+          Next;
+        end;
+      end;
     except
 
     end;
-    {$DEFINE KRAKEN_REQUESTHTTP}
-    {$IF DEFINED(KRAKEN_REQUESTHTTP)}
-      memSaida.Lines.Add(JSONTmp);
-    {$ELSE}
-      memSaida.Lines.Add('OK');
-    {$ENDIF}
   end;
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
+procedure TForm1.btnExecSQLClick(Sender: TObject);
 begin
   TKraken
     .Provider('base')
@@ -84,7 +89,7 @@ begin
       .Port(5432)
       .Username('postgres')
       .Password('vi7700')
-      .Database('VIGGO_1805')
+      .Database('viggo')
       .URLRemoto('http://localhost:9000/consulta');
 
   with TKraken.Provider('base').Query do
@@ -101,16 +106,15 @@ begin
     except
       TKraken.Provider('base').Rollback;
     end;
-    {$DEFINE KRAKEN_REQUESTHTTP}
     {$IF DEFINED(KRAKEN_REQUESTHTTP)}
-      memSaida.Lines.Add(JSONTmp);
+      memSaida.Lines.Add( Response );
     {$ELSE}
       memSaida.Lines.Add('OK');
     {$ENDIF}
   end;
 end;
 
-procedure TForm1.Button3Click(Sender: TObject);
+procedure TForm1.btnOpenStartClick(Sender: TObject);
 begin
   TKraken
     .Provider('base')
@@ -120,7 +124,7 @@ begin
       .Port(5432)
       .Username('postgres')
       .Password('vi7700')
-      .Database('VIGGO_1805')
+      .Database('viggo')
       .URLRemoto('http://localhost:9000/consulta');
 
   with TKraken.Provider('base').Query do
@@ -138,9 +142,8 @@ begin
     except
       TKraken.Provider('base').Rollback;
     end;
-    {$DEFINE KRAKEN_REQUESTHTTP}
     {$IF DEFINED(KRAKEN_REQUESTHTTP)}
-      memSaida.Lines.Add(JSONTmp);
+      memSaida.Lines.Add(Response);
     {$ELSE}
       memSaida.Lines.Add('OK');
     {$ENDIF}
@@ -169,8 +172,6 @@ begin
     SQL.Add('SELECT codigo, nomeg FROM participante');
     Open();
   end; }
-
-  memConsulta.Lines.Add('SELECT codigo, nome FROM participante');
 end;
 
 end.

@@ -4,12 +4,11 @@ interface
 
 uses
   System.IniFiles,
-  System.SysUtils,
-  ZConnection;
+  System.SysUtils;
 
 type
   TKrakenProviderRequestHTTPSettings = class
-    constructor Create(AConnetion: TZConnection);
+    constructor Create;
     destructor Destroy; override;
   private
     FIniFile    : TIniFile;

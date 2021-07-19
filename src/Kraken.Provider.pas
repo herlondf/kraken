@@ -8,8 +8,6 @@ uses
   Kraken.Provider.RequestHTTP;
 
 type
-//{$DEFINE KRAKEN_REQUESTHTTP}
-
 {$IF DEFINED(KRAKEN_FIREDAC)}
   TKrakenProvider = Kraken.Provider.Firedac.TKrakenProviderFireDAC;
 {$ELSE}
