@@ -7,11 +7,13 @@ uses
   System.SysUtils,
   System.Generics.Collections,
 
+  Kraken.Types,
   Kraken.Consts,
   Kraken.Provider,
   Kraken.Provider.Query;
 
 type
+  TLocateOption        = Kraken.Types.TLocateOption;
   TKrakenProvider      = Kraken.Provider.TKrakenProvider;
   TKrakenProviders     = TObjectList<TKrakenProvider>;
   TKrakenProviderQuery = Kraken.Provider.Query.TKrakenProviderQuery;
