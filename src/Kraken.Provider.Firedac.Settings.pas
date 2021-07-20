@@ -22,6 +22,7 @@ type
     FUsername   : String;
     FPassword   : String;
     FDatabase   : String;
+    FURLRemoto  : string;
 
     function HasAssignedIniFile: Boolean;
   public
@@ -45,6 +46,10 @@ type
     function Database(const ADatabase: String): TKrakenProviderFiredacSettings; overload;
     function Database(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function Database: String; overload;
+
+    function URLRemoto(const AURLRemoto: String): TKrakenProviderFiredacSettings; overload;
+    function URLRemoto(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
+    function URLRemoto: String; overload;
 
     function IniPath(const APath: String): TKrakenProviderFiredacSettings;
 
@@ -210,6 +215,25 @@ end;
 function TKrakenProviderFiredacSettings.Database: String;
 begin
   Result := FDatabase;
+end;
+
+function TKrakenProviderFiredacSettings.URLRemoto(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
+begin
+  Result := Self;
+  HasAssignedIniFile;
+
+  FURLRemoto := FIniFile.ReadString(ASection, AIdent, ADefault);
+end;
+
+function TKrakenProviderFiredacSettings.URLRemoto(const AURLRemoto: String): TKrakenProviderFiredacSettings;
+begin
+  Result := Self;
+  FURLRemoto  := AURLRemoto;
+end;
+
+function TKrakenProviderFiredacSettings.URLRemoto: String;
+begin
+  Result := FURLRemoto;
 end;
 
 function TKrakenProviderFiredacSettings.AsyncMode(const AMode: TFDStanAsyncMode): TKrakenProviderFiredacSettings;

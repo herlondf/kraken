@@ -11,7 +11,7 @@ uses
   Kraken.Provider.Firedac in '..\src\Kraken.Provider.Firedac.pas',
   Kraken.Provider.Firedac.Query in '..\src\Kraken.Provider.Firedac.Query.pas',
   Kraken.Provider.Firedac.Settings in '..\src\Kraken.Provider.Firedac.Settings.pas',
-  Kraken.Provider.Param in '..\src\Kraken.Provider.Param.pas',
+  Kraken.Provider.Params in '..\src\Kraken.Provider.Params.pas',
   Kraken.Provider in '..\src\Kraken.Provider.pas',
   Kraken.Provider.Query in '..\src\Kraken.Provider.Query.pas',
   Kraken.Provider.RequestHTTP in '..\src\Kraken.Provider.RequestHTTP.pas',
@@ -26,6 +26,8 @@ uses
 {$R *.res}
 
 begin
+  ReportMemoryLeaksOnShutdown := True;
+
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TForm1, Form1);

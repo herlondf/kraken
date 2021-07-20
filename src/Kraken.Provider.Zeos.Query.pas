@@ -21,6 +21,9 @@ type
     function  Id(const Value: String): TKrakenProviderZeosQuery; overload;
     function  Id: String; overload;
 
+    function  StartTransaction: Boolean; overload;
+    function  StartTransaction(const Value: Boolean): TKrakenProviderZeosQuery; overload;
+
     function  SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderZeosQuery; overload;
     function  SaveQuery: String; overload;
 
@@ -81,6 +84,16 @@ begin
   Result := Result + SQL.GetText;
 
   LParams.Free;
+end;
+
+function TKrakenProviderZeosQuery.StartTransaction(const Value: Boolean): TKrakenProviderZeosQuery;
+begin
+  Result := Self;
+end;
+
+function TKrakenProviderZeosQuery.StartTransaction: Boolean;
+begin
+
 end;
 
 function TKrakenProviderZeosQuery.SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderZeosQuery;

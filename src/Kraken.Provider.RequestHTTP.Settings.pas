@@ -48,6 +48,11 @@ type
     function URLRemoto: String; overload;
 
     function IniPath(const APath: String): TKrakenProviderRequestHTTPSettings;
+
+    ///<summary>            Define o autocommit de transacoes (insert, update, delete)            </summary>
+    ///<param name="AMode"> Se falso, deve usar o StartTransaction e Commit                       </param>
+    ///<remarks>            Default: False                                                        </remarks>
+    function AutoCommit(const AMode: Boolean): TKrakenProviderRequestHTTPSettings;
   end;
 
 implementation
@@ -163,17 +168,6 @@ begin
   FPort  := StrToIntDef(APort, 5432);
 end;
 
-function TKrakenProviderRequestHTTPSettings.URLRemoto(const AURLRemoto: String): TKrakenProviderRequestHTTPSettings;
-begin
-  Result := Self;
-  FURLRemoto  := AURLRemoto;
-end;
-
-function TKrakenProviderRequestHTTPSettings.URLRemoto: String;
-begin
-  Result := FURLRemoto;
-end;
-
 function TKrakenProviderRequestHTTPSettings.Username(const AUsername: String): TKrakenProviderRequestHTTPSettings;
 begin
   Result := Self;
@@ -199,6 +193,23 @@ begin
   HasAssignedIniFile;
 
   FURLRemoto := FIniFile.ReadString(ASection, AIdent, ADefault);
+end;
+
+function TKrakenProviderRequestHTTPSettings.URLRemoto(const AURLRemoto: String): TKrakenProviderRequestHTTPSettings;
+begin
+  Result := Self;
+  FURLRemoto  := AURLRemoto;
+end;
+
+function TKrakenProviderRequestHTTPSettings.URLRemoto: String;
+begin
+  Result := FURLRemoto;
+end;
+
+
+function TKrakenProviderRequestHTTPSettings.AutoCommit(const AMode: Boolean): TKrakenProviderRequestHTTPSettings;
+begin
+
 end;
 
 end.
