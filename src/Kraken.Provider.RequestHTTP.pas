@@ -38,12 +38,12 @@ type
       procedure StartTransaction;
       procedure Commit;
       procedure Rollback;
+      function  Connected: Boolean;
 
       function Querys: TKrakenQuerys;
       function Query: TKrakenProviderRequestHTTPQuery; overload;
       function Query(const AId: String): TKrakenProviderRequestHTTPQuery; overload;
       function Query(const AId: Integer): TKrakenProviderRequestHTTPQuery; overload;
-
   end;
 
 implementation
@@ -75,6 +75,11 @@ begin
 end;
 
 procedure TKrakenProviderRequestHTTP.Connect;
+begin
+
+end;
+
+function TKrakenProviderRequestHTTP.Connected: Boolean;
 begin
 
 end;
@@ -127,9 +132,10 @@ begin
 
   if Result = nil then
   begin
-    LKrakenQuery := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderRequestHTTPQuery.Create(nil) ) ];
+    LKrakenQuery := FKrakenQuerys.Items[ FKrakenQuerys.Add( TKrakenProviderRequestHTTPQuery.Create ) ];
     LKrakenQuery.Id(AId);
     LKrakenQuery.Endpoint( Settings.URLRemoto );
+
     Result := LKrakenQuery;
   end;
 end;

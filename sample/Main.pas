@@ -45,36 +45,43 @@ procedure TForm1.btnOpenClick(Sender: TObject);
 begin
   TKraken
     .Provider('base')
-    .ProviderType( TKrakenProviderType.ptPostgres )
     .Settings
-      .Host('127.0.0.1')
-      .Port(5432)
-      .Username('postgres')
-      .Password('vi7700')
-      .Database('viggo')
-      .URLRemoto('http://localhost:9000/consulta');
+      .URLRemoto( 'http://localhost:9000/consulta');
 
   with TKraken.Provider('base').Query do
   begin
     SQL.Clear;
-    SQL.Add('SELECT * FROM participante WHERE codigo > :codigo');
-    ParamByName('codigo').AsInteger := 1;
+    SQL.Add('SELECT * FROM times WHERE valor > :valor');
+    ParamByName('valor').AsFloat := 25.001;
+
+    Locate('teste', 'teste', [TLocateOption.loCaseInsensitive]);
+
+    memSaida.Lines.Add( ParamByName('valor').AsString );
 
     memSaida.Lines.Clear;
 
     try
       try
+        StartTransaction;
         Open();
+
       finally
         while not Eof do
         begin
-          memSaida.Lines.Add( FieldByName('nome').AsString );
+          memSaida.Lines.Add(
+            FieldByName( 'id'    ).AsString + ' / ' +
+            FieldByName( 'nome'  ).AsString + ' / ' +
+            FloatToStr( FieldByName( 'valor' ).AsFloat )
+          );
 
           Next;
+
+
         end;
       end;
     except
-
+      on E: exception do
+        memSaida.Lines.Add(E.Message);
     end;
   end;
 end;
@@ -95,8 +102,11 @@ begin
   with TKraken.Provider('base').Query do
   begin
     SQL.Clear;
-    SQL.Add(memConsulta.Lines.GetText);
-    memSaida.Lines.Clear;
+    SQL.Add('INSERT INTO times(nome, valor, mundial) VALUES(:nome, :valor, :mundial)');
+
+    ParamByName( 'nome'   ).AsString  := 'PALMEIRAS';
+    ParamByName( 'valor'  ).AsCurrency   := 25.123456789;
+    ParamByName( 'mundial').AsBoolean := False;
 
     try
       TKraken.Provider('base').StartTransaction;
@@ -107,7 +117,7 @@ begin
       TKraken.Provider('base').Rollback;
     end;
     {$IF DEFINED(KRAKEN_REQUESTHTTP)}
-      memSaida.Lines.Add( Response );
+      memSaida.Lines.Add( '' );
     {$ELSE}
       memSaida.Lines.Add('OK');
     {$ENDIF}
@@ -130,8 +140,11 @@ begin
   with TKraken.Provider('base').Query do
   begin
     SQL.Clear;
-    SQL.Add(memConsulta.Lines.GetText);
-    memSaida.Lines.Clear;
+    SQL.Add('INSERT INTO times(nome, valor, mundial) VALUES(:nome, :valor, :mundial) RETURNING *');
+
+    ParamByName( 'nome'   ).AsString   := 'PALMEIRAS';
+    ParamByName( 'valor'  ).AsCurrency := 25.123456789;
+    ParamByName( 'mundial').AsBoolean  := False;
 
     try
       TKraken.Provider('base').StartTransaction;
@@ -143,7 +156,16 @@ begin
       TKraken.Provider('base').Rollback;
     end;
     {$IF DEFINED(KRAKEN_REQUESTHTTP)}
-      memSaida.Lines.Add(Response);
+    while not Eof do
+    begin
+      memSaida.Lines.Add(
+        FieldByName( 'id'    ).AsString + ' / ' +
+        FieldByName( 'nome'  ).AsString + ' / ' +
+        FloatToStr( FieldByName( 'valor' ).AsFloat )
+      );
+
+      Next;
+    end;
     {$ELSE}
       memSaida.Lines.Add('OK');
     {$ENDIF}

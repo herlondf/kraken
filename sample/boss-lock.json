@@ -4,8 +4,8 @@
 	"installedModules": {
 		"github.com/herlondf/kraken": {
 			"name": "kraken",
-			"version": "1.0.8",
-			"hash": "1a5dd15b9a4dda099ce24a3a47929132",
+			"version": "1.0.9",
+			"hash": "92c73da8de867dc0f0231ee407096e2b",
 			"artifacts": {},
 			"failed": false,
 			"changed": false
@@ -28,8 +28,8 @@
 		},
 		"github.com/viniciussanchez/restrequest4delphi": {
 			"name": "restrequest4delphi",
-			"version": "v3.0.6",
-			"hash": "c113a36fa794862991b7d85d8a23053a",
+			"version": "v3.0.7",
+			"hash": "4916891bd39abc81d53e0a1f034b5a43",
 			"artifacts": {},
 			"failed": false,
 			"changed": false
