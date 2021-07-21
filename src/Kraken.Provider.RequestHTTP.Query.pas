@@ -47,6 +47,9 @@ type
 
     ///<summary> Faz o destroy do JSON atual e recebe um novo, para evitar memory leak </summary>
     function JSONResponse(const AJSONArray: TJSONArray): TKrakenProviderRequestHTTPQuery;
+
+    function GetSQLText: String;
+    procedure SetSQLText(const Value: String);
   public
     ///<summary> Recebe a instancia final da classe </summary>
     function  GetInstance: TKrakenProviderRequestHTTPQuery;
@@ -69,7 +72,13 @@ type
     function  Endpoint(const Value: String): TKrakenProviderRequestHTTPQuery;
 
     ///<summary> Retorna a lista de string da SQL </summary>
-    function  SQL: TStringList;
+    function  SQL: TKrakenProviderRequestHTTPQuery;
+
+    ///<summary> Metodos de sobrescrita do SQL </summary>
+    function  Add(const Value: string): TKrakenProviderRequestHTTPQuery;
+    function  Append(const Value: string): TKrakenProviderRequestHTTPQuery;
+    function  GetText: String;
+    property  Text : String read GetSQLText write SetSQLText;
 
     ///<summary> Limpa a lista string de SQL </summary>
     procedure Clear;
@@ -128,6 +137,7 @@ constructor TKrakenProviderRequestHTTPQuery.Create;
 begin
   FFields := TKrakenProviderFields.Create;
   FParams := TKrakenProviderParams.Create;
+  FSQL    := TStringList.Create;
 end;
 
 destructor TKrakenProviderRequestHTTPQuery.Destroy;
@@ -162,10 +172,9 @@ var
   LResult : string;
 begin
   LResult := '';
-  LResult := Trim( SQL.Text );
-  LResult := StringReplace( LResult , #$D#$A , '' , [rfReplaceAll] );
-  LResult := StringReplace( LResult , ''''   , '' , [rfReplaceAll] );
-  LResult := StringReplace( LResult , '\r\n' , '' , [rfReplaceAll] );
+  LResult := Trim( FSQL.Text );
+  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
 
   LResult := FParams.ParseSQL(LResult);
 
@@ -200,7 +209,7 @@ begin
         .AddBody            ( LJSONObject, False                  )
         .Post;
     finally
-      Clear;
+      FPosItem := 0;
       FreeAndNil(LJSONObject);
 
       if not ( LResponse.StatusCode in [200,201] ) then
@@ -214,7 +223,6 @@ begin
       end
       else
       begin
-
         JSONResponse( TJSONObject.ParseJSONValue(LResponse.Content) as TJSONArray );
       end;
     end;
@@ -242,6 +250,11 @@ end;
 function TKrakenProviderRequestHTTPQuery.GetInstance: TKrakenProviderRequestHTTPQuery;
 begin
   Result := Self;
+end;
+
+function TKrakenProviderRequestHTTPQuery.GetSQLText: String;
+begin
+  Result := FSQL.Text;
 end;
 
 function TKrakenProviderRequestHTTPQuery.Id(const Value: String): TKrakenProviderRequestHTTPQuery;
@@ -282,19 +295,32 @@ begin
   FEndpoint := Value;
 end;
 
-
-function TKrakenProviderRequestHTTPQuery.SQL: TStringList;
+function TKrakenProviderRequestHTTPQuery.SQL: TKrakenProviderRequestHTTPQuery;
 begin
-  if not Assigned(FSQL) then
-    FSQL := TStringList.Create;
-  Result := FSQL;
+  Result := Self;
+end;
+
+function TKrakenProviderRequestHTTPQuery.Add(const Value: string): TKrakenProviderRequestHTTPQuery;
+begin
+  Result := Self;
+  FSQL.Add(Value);
+end;
+
+function TKrakenProviderRequestHTTPQuery.Append(const Value: string): TKrakenProviderRequestHTTPQuery;
+begin
+  Result := Self;
+  FSQL.Append(Value);
+end;
+
+function TKrakenProviderRequestHTTPQuery.GetText: String;
+begin
+  Result := FSQL.Text;
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.Clear;
 begin
-  SQL.Clear;
+  FSQL.Clear;
   FParams.List.Clear;
-  FPosItem := 0;
 end;
 
 function TKrakenProviderRequestHTTPQuery.SaveQuery(aPath, AFilename: String): TKrakenProviderRequestHTTPQuery;
@@ -341,7 +367,7 @@ begin
     WriteLN( LArqFile, LParams.Text                                              );
     WriteLN( LArqFile, '-----------------------------------------------*/'       );
     WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, SQL.Text                                                  );
+    WriteLN( LArqFile, FSQL.Text                                                 );
   finally
     CloseFile( LArqFile );
     LParams.Free;
@@ -351,7 +377,12 @@ end;
 
 function TKrakenProviderRequestHTTPQuery.SaveQuery: String;
 begin
-  Result := FParams.ParseSQL( SQL.Text );
+  Result := FParams.ParseSQL( FSQL.Text );
+end;
+
+procedure TKrakenProviderRequestHTTPQuery.SetSQLText(const Value: String);
+begin
+  FSQL.Text := Value;
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.Open;
@@ -361,7 +392,7 @@ end;
 
 procedure TKrakenProviderRequestHTTPQuery.Open(ASQL: String);
 begin
-  SQL.Text := ASQL;
+  FSQL.Text := ASQL;
   Request(rcOpen, FStartTransaction);
 end;
 
@@ -387,7 +418,7 @@ end;
 
 procedure TKrakenProviderRequestHTTPQuery.Close;
 begin
-  Clear;
+
 end;
 
 function TKrakenProviderRequestHTTPQuery.RecordCount: Integer;

@@ -20,8 +20,8 @@ type
     FKrakenParams : TKrakenParams;
     FParamname    : String;
 
-    function  ParamExist(AParam: string): Boolean;
-    procedure ParamAdd(AParam: String; AValue: Variant; AFieldtype: TFieldType); overload;
+    function  ParamExist(AParam: String; AValue: Variant; AFieldtype: TFieldType): Boolean;
+    procedure ParamAdd(AParam: String; AValue: Variant; AFieldtype: TFieldType);
     function  ParamGet(AParamname: String): Variant;
 
     procedure SetAsString    ( const Value: String     );
@@ -89,21 +89,27 @@ begin
   Result := FKrakenParams;
 end;
 
-function TKrakenProviderParams.ParamExist(AParam: string): Boolean;
+function TKrakenProviderParams.ParamExist(AParam: String; AValue: Variant; AFieldtype: TFieldType): Boolean;
 var
-  I: Integer;
+  LKrakenParamClass: TKrakenParamsClass;
 begin
   Result := False;
 
   if FParamname = '' then
     raise Exception.Create('Param name not defined.');
 
-  for I := 0 to Pred( FKrakenParams.Count ) do
+  for LKrakenParamClass in FKrakenParams  do
   begin
-    Result := AnsiUpperCase( FKrakenParams.Items[I].Name ) = AnsiUpperCase(AParam);
+    Result := AnsiUpperCase( LKrakenParamClass.Name ) = AnsiUpperCase(':'+AParam);
 
     if Result then
+    begin
+      LKrakenParamClass.Value    := AValue;
+      LKrakenParamClass.Datatype := AFieldtype;
+
       Break;
+    end;
+
   end;
 end;
 
@@ -125,7 +131,7 @@ end;
 
 procedure TKrakenProviderParams.ParamAdd(AParam: String; AValue: Variant; AFieldtype: TFieldType);
 begin
-  if not ParamExist(AParam) then
+  if not ParamExist(AParam, AValue, AFieldtype) then
   begin
     with FKrakenParams.Items[ FKrakenParams.Add( TKrakenParamsClass.Create ) ] do
     begin
@@ -140,7 +146,7 @@ end;
 
 procedure TKrakenProviderParams.Clear;
 begin
-  //
+  ParamExist(FParamname, '', ftUnknown);
 end;
 
 function TKrakenProviderParams.Count: Integer;
@@ -274,14 +280,14 @@ begin
   for LKrakenParam in FKrakenParams do
   begin
     case LKrakenParam.Datatype of
-      ftFloat, ftInteger, ftCurrency : LField := StringReplace(LKrakenParam.Value, ',', '.', [rfReplaceAll]);
+      ftFloat, ftInteger, ftCurrency : LField := StringReplace(LKrakenParam.Value, ',', '.', [rfIgnoreCase]);
       ftString, ftWideString         : LField := '''' + LKrakenParam.Value + '''';
     end;
 
     if LField <> '' then
-    LSQL := StringReplace(LSQL, LKrakenParam.Name, LField, [rfReplaceAll,  rfIgnoreCase])
+    LSQL := StringReplace(LSQL, LKrakenParam.Name, LField, [rfIgnoreCase])
     else
-    LSQL := StringReplace(LSQL, LKrakenParam.Name, LKrakenParam.Value, [rfReplaceAll,  rfIgnoreCase]);
+    LSQL := StringReplace(LSQL, LKrakenParam.Name, LKrakenParam.Value, [rfIgnoreCase]);
 
     LField := '';
   end;

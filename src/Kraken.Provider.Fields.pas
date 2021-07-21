@@ -56,7 +56,7 @@ end;
 function TKrakenProviderFields.Field(AFieldname: String): TKrakenProviderFields;
 begin
   Result := Self;
-  FField := StringReplace(AFieldname, '_', '', [rfReplaceAll, rfIgnoreCase]);
+  FField := AnsiLowerCase( AFieldname );
 end;
 
 function TKrakenProviderFields.GetJSONObject: TJSONObject;
@@ -66,7 +66,7 @@ begin
   try
     Result := FJSON.Items[FPos] as TJSONObject;
   except
-    raise;
+
   end;
 end;
 
@@ -94,7 +94,8 @@ end;
 
 function TKrakenProviderFields.AsCurrency: Currency;
 begin
-  Result := StrToCurrDef( ResponsePrepare( GetJSONObject.GetValue(FField).ToString ), -1 );
+  if not TryStrToCurr( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+    Result := 0;
 end;
 
 function TKrakenProviderFields.AsDate: TDate;
@@ -108,7 +109,8 @@ begin
   LFormatSettings.ShortTimeFormat := 'hh:mm';
   LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
 
-  Result := StrToDate( ResponsePrepare( GetJSONObject.GetValue(FField).ToString ), LFormatSettings );
+  if not TryStrToDate( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), TDatetime(Result) ) then
+    Result := -1;
 end;
 
 function TKrakenProviderFields.AsDateTime: TDateTime;
@@ -122,47 +124,66 @@ begin
   LFormatSettings.ShortTimeFormat := 'hh:mm';
   LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
 
-  Result := StrToDateTime( ResponsePrepare( GetJSONObject.GetValue(FField).ToString ), LFormatSettings );
+  if not TryStrToDateTime( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result )  then
+    Result := -1;
 end;
 
 function TKrakenProviderFields.AsFloat: Double;
 begin
-  Result := JsonToFloat( GetJSONObject.GetValue(FField).ToString );
+  if not TryJsonToFloat( GetJSONObject.GetValue( FField ).ToString, Result ) then
+    Result := 0;
 end;
 
 function TKrakenProviderFields.AsInteger: Integer;
 begin
-  Result := StrToIntDef( ResponsePrepare( GetJSONObject.GetValue(FField).ToString ), -1 );
+  if not TryStrToInt( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+    Result := 0;
 end;
 
 function TKrakenProviderFields.AsString: string;
 begin
-  Result := ResponsePrepare( GetJSONObject.GetValue(FField).ToString );
+  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+    Result := ''
+  else
+    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
 end;
 
 function TKrakenProviderFields.AsWideString: WideString;
 begin
-  Result := ResponsePrepare( GetJSONObject.GetValue(FField).ToString );
+  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+    Result := ''
+  else
+    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
 end;
 
 function TKrakenProviderFields.AsXML: WideString;
 begin
-  Result := ResponsePrepare( GetJSONObject.GetValue(FField).ToString );
+  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+    Result := ''
+  else
+    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
 end;
 
 function TKrakenProviderFields.AsBoolean: Boolean;
 begin
-  Result := StrToBoolDef( ResponsePrepare( GetJSONObject.GetValue(FField).ToString ), False );
+  if not TryStrToBool( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+    Result := False;
 end;
 
 function TKrakenProviderFields.IsNull: Boolean;
 begin
-  Result := GetJSONObject.GetValue(FField).ToString = '';
+  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+    Result := False
+  else
+    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = '';
 end;
 
 function TKrakenProviderFields.Value: Variant;
 begin
-  Result := GetJSONObject.GetValue(FField).ToString;
+  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+    Result := ''
+  else
+    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
 end;
 
 

@@ -72,6 +72,8 @@ procedure TKrakenProviderRequestHTTP.Commit;
 begin
   if FKrakenQuerys.Count > 0 then
     FKrakenQuerys.First.StartTransaction(False);
+
+  FKrakenQuerys.First.Params.Clear;
 end;
 
 procedure TKrakenProviderRequestHTTP.Connect;
