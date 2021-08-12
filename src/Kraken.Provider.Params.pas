@@ -42,8 +42,8 @@ type
     function GetAsXML        : WideString;
     function GetAsCurrency   : Currency;
     function GetAsBoolean    : Boolean;
-    function GetAsDate       : String;
-    function GetAsDateTime   : String;
+    function GetAsDate       : TDate;
+    function GetAsDateTime   : TDateTime;
     function GetAsWideString : WideString;
     function GetIsNull       : Boolean;
     function GetValue        : Variant;
@@ -219,12 +219,12 @@ begin
   Result := ParamGet(FParamname);
 end;
 
-function TKrakenProviderParams.GetAsDate: String;
+function TKrakenProviderParams.GetAsDate: TDate;
 begin
   Result := ParamGet(FParamname);
 end;
 
-function TKrakenProviderParams.GetAsDateTime: String;
+function TKrakenProviderParams.GetAsDateTime: TDateTime;
 begin
   Result := ParamGet(FParamname);
 end;
