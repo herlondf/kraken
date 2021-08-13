@@ -156,7 +156,7 @@ end;
 
 function TKrakenProviderRequestHTTPQuery.HashGenerate: String;
 begin
-  Result := THashMD5.GetHashString( RequestPrepared );
+  Result := THashMD5.GetHashString( Trim( RequestPrepared ) );
 end;
 
 function TKrakenProviderRequestHTTPQuery.RequestCommandToString(ARequestCommand: TRequestCommand): String;
@@ -178,6 +178,9 @@ begin
 
   LResult := FParams.ParseSQL(LResult);
 
+  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+
   Result := LResult;
 end;
 
@@ -197,6 +200,10 @@ begin
       LJSONObject.AddPair( TJsonPair.Create( 'sql'              , RequestPrepared                           ) );
       LJSONObject.AddPair( TJsonPair.Create( 'comando'          , RequestCommandToString( ARequestCommand ) ) );
       LJSONObject.AddPair( TJsonPair.Create( 'starttransaction' , BoolToStr( AStartTransaction )            ) );
+
+      {$IFDEF DEBUG}
+      SaveQuery( ExtractFilePath( ParamStr(0) ) + 'LOG\eVendas\', '');
+      {$ENDIF}
 
       LResponse :=
       TRequest.New
@@ -332,7 +339,7 @@ var
   LFilename       : String;
 begin
   Result := Self;
-
+  {$IFDEF DEBUG}
   if not DirectoryExists( aPath ) then
     ForceDirectories( aPath );
 
@@ -367,17 +374,20 @@ begin
     WriteLN( LArqFile, LParams.Text                                              );
     WriteLN( LArqFile, '-----------------------------------------------*/'       );
     WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, FSQL.Text                                                 );
+    WriteLN( LArqFile, RequestPrepared                                                 );
   finally
     CloseFile( LArqFile );
     LParams.Free;
   end;
-
+  {$ENDIF}
 end;
 
 function TKrakenProviderRequestHTTPQuery.SaveQuery: String;
 begin
+  result := '';
+  {$IFDEF DEBUG}
   Result := FParams.ParseSQL( FSQL.Text );
+  {$ENDIF}
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.SetSQLText(const Value: String);

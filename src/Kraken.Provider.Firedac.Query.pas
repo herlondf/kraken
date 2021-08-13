@@ -76,6 +76,7 @@ var
   LParams : TStringList;
 begin
   Result := '';
+  {$IFDEF DEBUG}
   LParams := TStringLIst.Create;
 
   for I := 0 to Pred( Params.Count ) do
@@ -85,6 +86,7 @@ begin
   Result := Result + SQL.GetText;
 
   LParams.Free;
+  {$ENDIF}
 end;
 
 function TKrakenProviderFiredacQuery.SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderFiredacQuery;
@@ -96,7 +98,7 @@ var
   LFilename       : String;
 begin
   Result := Self;
-
+  {$IFDEF DEBUG}
   if not DirectoryExists( aPath ) then
     ForceDirectories( aPath );
 
@@ -135,6 +137,7 @@ begin
     CloseFile( LArqFile );
     LParams.Free;
   end;
+  {$ENDIF}
 end;
 
 procedure TKrakenProviderFiredacQuery.Open(ASQL: String);

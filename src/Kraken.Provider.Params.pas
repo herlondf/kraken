@@ -7,7 +7,7 @@ uses
   System.Classes,
   System.SysUtils,
   System.Generics.Collections,
-
+  DateUtils,
   Kraken.Types;
 
 type
@@ -23,6 +23,7 @@ type
     function  ParamExist(AParam: String; AValue: Variant; AFieldtype: TFieldType): Boolean;
     procedure ParamAdd(AParam: String; AValue: Variant; AFieldtype: TFieldType);
     function  ParamGet(AParamname: String): Variant;
+    function  ReplaceWords(AValue: string; AFindWord: string; AReplaceWord: String): string;
 
     procedure SetAsString    ( const Value: String     );
     procedure SetAsInteger   ( const Value: Integer    );
@@ -226,7 +227,7 @@ end;
 
 function TKrakenProviderParams.GetAsDateTime: TDateTime;
 begin
-  Result := ParamGet(FParamname);
+  Result :=  ParamGet(FParamname);
 end;
 
 function TKrakenProviderParams.GetAsFloat: Extended;
@@ -275,24 +276,83 @@ var
   LKrakenParam : TKrakenParamsClass;
   LSQL         : String;
   LField       : string;
+  tmp: TStringList;
 begin
   LSQL := ASQL;
   for LKrakenParam in FKrakenParams do
   begin
     case LKrakenParam.Datatype of
-      ftFloat, ftInteger, ftCurrency : LField := StringReplace(LKrakenParam.Value, ',', '.', [rfIgnoreCase]);
+      ftFloat, ftInteger, ftCurrency : LField := StringReplace(LKrakenParam.Value, ',', '.', [rfReplaceAll, rfIgnoreCase]);
       ftString, ftWideString         : LField := '''' + LKrakenParam.Value + '''';
+      ftDate                         : LField := '''' + DateToStr(LKrakenParam.Value) + '''';
+      ftDateTime                     : LField := '''' + DateTimeToStr(LKrakenParam.Value) + '''';
     end;
 
     if LField <> '' then
-    LSQL := StringReplace(LSQL, LKrakenParam.Name, LField, [rfIgnoreCase])
+    //LSQL := StringReplace(LSQL, LKrakenParam.Name, LField, [rfReplaceAll])
+    LSQL := ReplaceWords(LSQL, LKrakenParam.Name, LField)
     else
-    LSQL := StringReplace(LSQL, LKrakenParam.Name, LKrakenParam.Value, [rfIgnoreCase]);
+    LSQL := ReplaceWords(LSQL, LKrakenParam.Name, LKrakenParam.Value);
+    //LSQL := StringReplace(LSQL, LKrakenParam.Name, LKrakenParam.Value, [rfReplaceAll]);
 
     LField := '';
   end;
 
   Result := LSQL;
+end;
+
+function TKrakenProviderParams.ReplaceWords(AValue: string; AFindWord: string; AReplaceWord: String): string;
+var
+  LStrings: TStringlist;
+  I: Integer;
+  LResult: string;
+  LWordCompare: string;
+  virgula: string;
+  parentAntes: string;
+  parentDepois:  string;
+begin
+  LStrings := TStringlist.Create;
+  LStrings.Delimiter := ' ';
+  LStrings.DelimitedText := AValue;
+
+  for I := 0 to Pred(LStrings.Count) do
+  begin
+    LWordCompare := LStrings.Strings[I];
+
+    if Pos(',', LWordCompare) > 0 then
+    begin
+      LWordCompare := Copy(LWordCompare, 0, Pos(',', LWordCompare) -1);
+      virgula := ', ';
+    end
+    else
+      virgula := '';
+
+    if Pos('(', LWordCompare) > 0 then
+    begin
+      LWordCompare := Copy( LWordCompare, Pos('(', LWordCompare) + 1, length(LWordCompare) + 1 );
+      parentAntes := '(';
+    end
+    else
+      parentAntes := '';
+
+    if Pos(')', LWordCompare) > 0 then
+    begin
+      LWordCompare := Copy(LWordCompare, 0, Pos(')', LWordCompare) -1);
+      parentDepois := ')';
+    end
+    else
+      parentDepois := '';
+
+    if ( AnsiUpperCase( AFindWord ) = AnsiUpperCase( LWordCompare ) ) then
+      LStrings.Strings[I] := parentAntes + AReplaceWord + parentDepois + virgula;
+
+  end;
+
+  LResult := LStrings.Text;
+
+  LStrings.Free;
+
+  result := LResult;
 end;
 
 end.

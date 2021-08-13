@@ -109,8 +109,12 @@ begin
   LFormatSettings.ShortTimeFormat := 'hh:mm';
   LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
 
-  if not TryStrToDate( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), TDatetime(Result) ) then
+  try
+    if not TryStrToDate( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), TDatetime(Result), LFormatSettings ) then
+      Result := -1;
+  except
     Result := -1;
+  end;
 end;
 
 function TKrakenProviderFields.AsDateTime: TDateTime;
@@ -124,8 +128,12 @@ begin
   LFormatSettings.ShortTimeFormat := 'hh:mm';
   LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
 
-  if not TryStrToDateTime( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result )  then
+  try
+    if not TryStrToDateTime( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result, LFormatSettings )  then
+      Result := -1;
+  except
     Result := -1;
+  end;
 end;
 
 function TKrakenProviderFields.AsFloat: Double;
@@ -136,8 +144,12 @@ end;
 
 function TKrakenProviderFields.AsInteger: Integer;
 begin
-  if not TryStrToInt( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+  try
+    if not TryStrToInt( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+      Result := 0;
+  except
     Result := 0;
+  end;
 end;
 
 function TKrakenProviderFields.AsString: string;
