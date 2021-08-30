@@ -8,7 +8,8 @@ uses
   System.SysUtils,
   System.Generics.Collections,
   DateUtils,
-  Kraken.Types;
+  Kraken.Types,
+  FireDAC.Comp.Client;
 
 type
   TKrakenParams = TObjectList<TKrakenParamsClass>;
@@ -289,11 +290,9 @@ begin
     end;
 
     if LField <> '' then
-    //LSQL := StringReplace(LSQL, LKrakenParam.Name, LField, [rfReplaceAll])
-    LSQL := ReplaceWords(LSQL, LKrakenParam.Name, LField)
+      LSQL := ReplaceWords(LSQL, LKrakenParam.Name, LField)
     else
-    LSQL := ReplaceWords(LSQL, LKrakenParam.Name, LKrakenParam.Value);
-    //LSQL := StringReplace(LSQL, LKrakenParam.Name, LKrakenParam.Value, [rfReplaceAll]);
+      LSQL := ReplaceWords(LSQL, LKrakenParam.Name, LKrakenParam.Value);
 
     LField := '';
   end;

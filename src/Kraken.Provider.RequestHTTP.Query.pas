@@ -3,6 +3,8 @@ unit Kraken.Provider.RequestHTTP.Query;
 interface
 
 uses
+  FireDAC.Comp.Client,
+
   System.Classes,
   System.SysUtils,
   System.Hash,
@@ -14,7 +16,11 @@ uses
 
   Kraken.Types,
   Kraken.Provider.Fields,
-  Kraken.Provider.Params;
+  Kraken.Provider.Params,
+
+  Dataset.Serialize,
+  DataSet.Serialize.Config, Biblioteca,
+  System.NETEncoding;
 
 type
   TRequestCommand = (rcExecSQL, rcOpen);
@@ -26,9 +32,10 @@ type
     FId               : String;
     FSQL              : TStringList;
     FEndpoint         : String;
-    FJSONResponse     : TJSONArray;
     FStartTransaction : Boolean;
     FPosItem          : Integer;
+    FDataset          : TFDMemTable;
+    FSQLAUX           : string;
 
     FFields           : TKrakenProviderFields;
     FParams           : TKrakenProviderParams;
@@ -40,13 +47,14 @@ type
     function  HashGenerate: String;
 
     ///<summary> Retira caracter especiais e quebras de linha do sql </summary>
-    function  RequestPrepared: String;
+    function  RequestPrepared: String; overload;
+    function  RequestPrepared(aSQL: String): String; overload;
 
     ///<summary> Realiza o request no endpoint informado </summary>
     procedure Request(ARequestCommand: TRequestCommand; AStartTransaction: Boolean);
 
     ///<summary> Faz o destroy do JSON atual e recebe um novo, para evitar memory leak </summary>
-    function JSONResponse(const AJSONArray: TJSONArray): TKrakenProviderRequestHTTPQuery;
+    //function JSONResponse(const AJSONArray: TJSONArray): TKrakenProviderRequestHTTPQuery;
 
     function GetSQLText: String;
     procedure SetSQLText(const Value: String);
@@ -127,6 +135,9 @@ type
 
     ///<summary> Retorna a existencia de registros </summary>
     function IsEmpty: Boolean;
+
+    ///<summary> Finalizar uma transação, e armazenar as informações no DB </summary>
+    procedure commit;
   end;
 
 implementation
@@ -135,9 +146,12 @@ implementation
 
 constructor TKrakenProviderRequestHTTPQuery.Create;
 begin
-  FFields := TKrakenProviderFields.Create;
-  FParams := TKrakenProviderParams.Create;
-  FSQL    := TStringList.Create;
+  FFields  := TKrakenProviderFields.Create;
+  FParams  := TKrakenProviderParams.Create;
+  FSQL     := TStringList.Create;
+  //FDataset := TFDMemTable.Create(nil);
+
+  TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndUpper;
 end;
 
 destructor TKrakenProviderRequestHTTPQuery.Destroy;
@@ -148,8 +162,7 @@ begin
   if Assigned(FSQL) then
   FreeAndNil(FSQL);
 
-  if Assigned(FJSONResponse) then
-  FreeAndNil(FJSONResponse);
+  FreeAndNil(FDataset);
 
   inherited;
 end;
@@ -178,8 +191,29 @@ begin
 
   LResult := FParams.ParseSQL(LResult);
 
+
   LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
   LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+
+  Result := LResult;
+end;
+
+function TKrakenProviderRequestHTTPQuery.RequestPrepared(aSQL: String): String;
+var
+  LResult : string;
+begin
+  LResult := '';
+  LResult := Trim( aSQL );
+  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+
+  LResult := FParams.ParseSQL(LResult);
+
+
+  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+
+  LResult := LResult + '; ';
 
   Result := LResult;
 end;
@@ -193,6 +227,7 @@ procedure TKrakenProviderRequestHTTPQuery.Request(ARequestCommand: TRequestComma
 var
   LJSONObject : TJSONObject;
   LResponse   : IResponse;
+  Teste: String;
 begin
   try
     try
@@ -230,7 +265,14 @@ begin
       end
       else
       begin
-        JSONResponse( TJSONObject.ParseJSONValue(LResponse.Content) as TJSONArray );
+        TEncoding.ASCII.GetBytes( LResponse.Content );
+
+        FDataset := TFDMemTable.Create(nil);
+
+        FDataset.LoadFromJSON(TJSONObject.ParseJSONValue(LResponse.Content) as TJSONArray);
+
+       // SalvarArquivo('', 'json.json', LResponse.Content);
+
       end;
     end;
   except
@@ -240,7 +282,7 @@ end;
 
 function TKrakenProviderRequestHTTPQuery.FieldByName(const AField: String): TKrakenProviderFields;
 begin
-  FFields.ResponseJSON( FJSONResponse );
+  FFields.ResponseJSON( FDataset      );
   FFields.Field       ( AField        );
   FFields.Pos         ( FPosItem      );
 
@@ -269,7 +311,7 @@ begin
   Result    := Self;
   FId       := Value;
 end;
-
+  {
 function TKrakenProviderRequestHTTPQuery.JSONResponse(const AJSONArray: TJSONArray): TKrakenProviderRequestHTTPQuery;
 begin
   Result := Self;
@@ -278,7 +320,7 @@ begin
   FreeAndNil(FJSONResponse);
 
   FJSONResponse := AJSONArray;
-end;
+end;  }
 
 function TKrakenProviderRequestHTTPQuery.Id: String;
 begin
@@ -289,6 +331,9 @@ function TKrakenProviderRequestHTTPQuery.StartTransaction(const Value: Boolean):
 begin
   Result := Self;
   FStartTransaction := Value;
+
+  FSQLAUX := FSQL.GetText;
+  FSQL.Clear;
 end;
 
 function TKrakenProviderRequestHTTPQuery.StartTransaction: Boolean;
@@ -327,7 +372,9 @@ end;
 procedure TKrakenProviderRequestHTTPQuery.Clear;
 begin
   FSQL.Clear;
-  FParams.List.Clear;
+  if Assigned(FDataset) then
+    FreeAndNil(FDataset);
+
 end;
 
 function TKrakenProviderRequestHTTPQuery.SaveQuery(aPath, AFilename: String): TKrakenProviderRequestHTTPQuery;
@@ -357,7 +404,7 @@ begin
     LParams.AddPair( '- ' + Params[I].Name, Params[I].Value );
 
   try
-    LRecordCount := IntToStr( FJSONResponse.Count );
+    LRecordCount := IntToStr( FDataset.RecordCount );
   except
     LRecordCount := '0';
   end;
@@ -386,7 +433,7 @@ function TKrakenProviderRequestHTTPQuery.SaveQuery: String;
 begin
   result := '';
   {$IFDEF DEBUG}
-  Result := FParams.ParseSQL( FSQL.Text );
+  //Result := FParams.ParseSQL( FSQL.Text );
   {$ENDIF}
 end;
 
@@ -397,23 +444,46 @@ end;
 
 procedure TKrakenProviderRequestHTTPQuery.Open;
 begin
+  if FStartTransaction then
+    FSQL.Add(FSQLAUX);
+
   Request(rcOpen, FStartTransaction);
+
+  {Quando for dado um open, o comando precisa
+   ser enviado, porém se o starttransaction
+   estiver true, no comit vai ser enviado novamento}
+  FStartTransaction := false;
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.Open(ASQL: String);
 begin
   FSQL.Text := ASQL;
   Request(rcOpen, FStartTransaction);
+
+  {Quando for dado um open, o comando precisa
+   ser enviado, porém se o starttransaction
+   estiver true, no comit vai ser enviado novamento}
+  FStartTransaction := false;
 end;
 
 function TKrakenProviderRequestHTTPQuery.Eof: Boolean;
 begin
-  Result := FPosItem = FJSONResponse.Count;
+  Result := FPosItem = FDataset.RecordCount;
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.ExecSQL;
 begin
-  Request(rcExecSQL, FStartTransaction);
+  if not StartTransaction then
+  begin
+    FStartTransaction := true;
+    Request(rcExecSQL, FStartTransaction);
+    FStartTransaction := false;
+  end
+  else
+  begin
+    FSQL.Add( RequestPrepared(FSQLAUX) );
+    //FParams.Clear;
+  end;
 end;
 
 function TKrakenProviderRequestHTTPQuery.Params: TKrakenParams;
@@ -424,6 +494,7 @@ end;
 procedure TKrakenProviderRequestHTTPQuery.Next;
 begin
   FPosItem := FPosItem + 1;
+  FDataset.Next;
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.Close;
@@ -431,9 +502,16 @@ begin
 
 end;
 
+procedure TKrakenProviderRequestHTTPQuery.commit;
+begin
+  if StartTransaction then
+    Request(rcExecSQL, FStartTransaction);
+  FSQLAUX := '';
+end;
+
 function TKrakenProviderRequestHTTPQuery.RecordCount: Integer;
 begin
-  Result := FJSONResponse.Count;
+  Result := FDataset.RecordCount;
 end;
 
 procedure TKrakenProviderRequestHTTPQuery.First;
@@ -443,7 +521,7 @@ end;
 
 procedure TKrakenProviderRequestHTTPQuery.Last;
 begin
-  FPosItem := FJSONResponse.Count;
+  FPosItem := FDataset.RecordCount;
 end;
 
 
@@ -458,16 +536,16 @@ begin
   LCaseInsensitive := loCaseInsensitive in AOptions;
 
   try
-    for I := 0 to Pred( FJSONResponse.Count ) do
+    for I := 0 to Pred( FDataset.RecordCount ) do
     begin
       if LCaseInsensitive and (not LPartialKey) then
-        Result := AnsiUpperCase( TJSONObject( FJSONResponse.Items[I] ).GetValue( AKeyField ).ToString ) = AnsiUpperCase( AKeyValue )
+        Result := AnsiUpperCase( FDataset.Fields.Fields[i].FindComponent( akeyField ).ToString ) = AnsiUpperCase( AKeyValue )
       else
       if LPartialKey and (not LCaseInsensitive) then
-        Result := Pos(AKeyValue, TJSONObject( FJSONResponse.Items[I] ).GetValue( AKeyField ).ToString ) > 0
+        Result := Pos(AKeyValue, FDataset.Fields.Fields[i].FindComponent( akeyField ).ToString  ) > 0
       else
       if LPartialKey and LCaseInsensitive then
-        Result := Pos(AnsiUpperCase( AKeyValue ), AnsiUpperCase( TJSONObject( FJSONResponse.Items[I] ).GetValue( AKeyField ).ToString ) ) > 0;
+        Result := Pos(AnsiUpperCase( AKeyValue ), AnsiUpperCase( FDataset.Fields.Fields[i].FindComponent( akeyField ).ToString ) ) > 0;
 
       if Result then
         Break;
@@ -480,7 +558,7 @@ end;
 
 function TKrakenProviderRequestHTTPQuery.IsEmpty: Boolean;
 begin
-  Result := FJSONResponse.Count = 0;
+  Result := FDataset.RecordCount = 0;
 end;
 
 end.
