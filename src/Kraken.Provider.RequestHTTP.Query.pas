@@ -536,19 +536,22 @@ begin
   LCaseInsensitive := loCaseInsensitive in AOptions;
 
   try
+    FDataset.First;
     for I := 0 to Pred( FDataset.RecordCount ) do
     begin
       if LCaseInsensitive and (not LPartialKey) then
-        Result := AnsiUpperCase( FDataset.Fields.Fields[i].FindComponent( akeyField ).ToString ) = AnsiUpperCase( AKeyValue )
+        Result := AnsiUpperCase( FDataset.Fields.FieldByName(AKeyField).AsString ) = AnsiUpperCase( AKeyValue )
       else
       if LPartialKey and (not LCaseInsensitive) then
-        Result := Pos(AKeyValue, FDataset.Fields.Fields[i].FindComponent( akeyField ).ToString  ) > 0
+        Result := Pos(AKeyValue, FDataset.Fields.FieldByName(AKeyField).AsString ) > 0
       else
       if LPartialKey and LCaseInsensitive then
-        Result := Pos(AnsiUpperCase( AKeyValue ), AnsiUpperCase( FDataset.Fields.Fields[i].FindComponent( akeyField ).ToString ) ) > 0;
+        Result := Pos(AnsiUpperCase( AKeyValue ), AnsiUpperCase( FDataset.Fields.FieldByName(AKeyField).AsString ) ) > 0;
 
       if Result then
         Break;
+
+      FDataset.Next
     end;
   except
     raise;
