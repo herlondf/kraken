@@ -20,7 +20,7 @@ uses
 
   Dataset.Serialize,
   DataSet.Serialize.Config, Biblioteca,
-  System.NETEncoding;
+  System.NetEncoding;
 
 type
   TRequestCommand = (rcExecSQL, rcOpen);
@@ -186,16 +186,16 @@ var
 begin
   LResult := '';
   LResult := Trim( FSQL.Text );
-  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
-  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
 
   LResult := FParams.ParseSQL(LResult);
 
 
-  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
-  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
 
-  Result := LResult;
+  Result := TNetEncoding.Base64.Encode( LResult );
 end;
 
 function TKrakenProviderRequestHTTPQuery.RequestPrepared(aSQL: String): String;
@@ -204,14 +204,14 @@ var
 begin
   LResult := '';
   LResult := Trim( aSQL );
-  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
-  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
 
   LResult := FParams.ParseSQL(LResult);
 
 
-  LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
-  LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
+  //LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
 
   LResult := LResult + '; ';
 

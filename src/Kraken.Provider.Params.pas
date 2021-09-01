@@ -297,7 +297,7 @@ begin
     LField := '';
   end;
 
-  Result := LSQL;
+  Result := StringReplace(LSQL, '*^', ' ', [rfReplaceAll]);
 end;
 
 function TKrakenProviderParams.ReplaceWords(AValue: string; AFindWord: string; AReplaceWord: String): string;
@@ -312,7 +312,7 @@ var
 begin
   LStrings := TStringlist.Create;
   LStrings.Delimiter := ' ';
-  LStrings.DelimitedText := AValue;
+  LStrings.DelimitedText := StringReplace(AValue, '-- ', '--', [rfReplaceAll]);
 
   for I := 0 to Pred(LStrings.Count) do
   begin
@@ -343,11 +343,11 @@ begin
       parentDepois := '';
 
     if ( AnsiUpperCase( AFindWord ) = AnsiUpperCase( LWordCompare ) ) then
-      LStrings.Strings[I] := parentAntes + AReplaceWord + parentDepois + virgula;
+      LStrings.Strings[I] := StringReplace(parentAntes + AReplaceWord + parentDepois + virgula, ' ', '*^', [rfReplaceAll]);
 
   end;
 
-  LResult := LStrings.Text;
+  LResult := LStrings.GetText;
 
   LStrings.Free;
 
