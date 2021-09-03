@@ -297,7 +297,7 @@ begin
     LField := '';
   end;
 
-  Result := StringReplace(LSQL, '*^', ' ', [rfReplaceAll]);
+  Result := LSQL;
 end;
 
 function TKrakenProviderParams.ReplaceWords(AValue: string; AFindWord: string; AReplaceWord: String): string;
@@ -312,7 +312,7 @@ var
 begin
   LStrings := TStringlist.Create;
   LStrings.Delimiter := ' ';
-  LStrings.DelimitedText := StringReplace(AValue, '-- ', '--', [rfReplaceAll]);
+  LStrings.DelimitedText := StringReplace( AValue, '-- ', '--', [rfReplaceAll] ) ;
 
   for I := 0 to Pred(LStrings.Count) do
   begin

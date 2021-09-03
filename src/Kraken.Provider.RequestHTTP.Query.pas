@@ -195,7 +195,7 @@ begin
   //LResult := StringReplace( LResult , #$D#$A , ' ' , [rfReplaceAll] );
   //LResult := StringReplace( LResult , '\r\n' , ''  , [rfReplaceAll] );
 
-  Result := TNetEncoding.Base64.Encode( LResult );
+  Result := TNetEncoding.Base64.Encode( StringReplace( LResult, '*^', ' ', [rfReplaceAll] ) );
 end;
 
 function TKrakenProviderRequestHTTPQuery.RequestPrepared(aSQL: String): String;
@@ -355,7 +355,10 @@ end;
 function TKrakenProviderRequestHTTPQuery.Add(const Value: string): TKrakenProviderRequestHTTPQuery;
 begin
   Result := Self;
-  FSQL.Add(Value);
+  if StartTransaction then
+    FSQLAUX := FSQLAUX + Value
+  else
+    FSQL.Add(Value);
 end;
 
 function TKrakenProviderRequestHTTPQuery.Append(const Value: string): TKrakenProviderRequestHTTPQuery;
@@ -372,6 +375,11 @@ end;
 procedure TKrakenProviderRequestHTTPQuery.Clear;
 begin
   FSQL.Clear;
+
+  if StartTransaction then
+    FSQL.Add( RequestPrepared(FSQLAUX) );
+
+  FSQLAUX := '';
   if Assigned(FDataset) then
     FreeAndNil(FDataset);
 
@@ -482,7 +490,7 @@ begin
   else
   begin
     FSQL.Add( RequestPrepared(FSQLAUX) );
-    //FParams.Clear;
+    //FSQLAUX := '';
   end;
 end;
 
