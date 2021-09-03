@@ -32,6 +32,8 @@ type
 
     procedure Open(ASQL: String); overload;
     procedure Open; overload;
+		
+		procedure ExecSQL; overload;
 
     procedure Clear;
   end;
@@ -142,16 +144,37 @@ end;
 
 procedure TKrakenProviderFiredacQuery.Open(ASQL: String);
 begin
-  GetInstance.SQL.Clear;
-  GetInstance.SQL.Add(ASQL);
-  GetInstance.Prepare;
-  GetInstance.Active := True;
+	try
+		GetInstance.SQL.Clear;
+		GetInstance.SQL.Add(ASQL);
+		GetInstance.Prepare;
+		GetInstance.Active := True;
+	except
+		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
+      TFDCustomConnection( GetInstance.Connection ).Rollback;
+	end;
 end;
 
 procedure TKrakenProviderFiredacQuery.Open;
 begin
-  GetInstance.Prepare;
-  GetInstance.Active := True;
+	try
+		GetInstance.Prepare;
+		GetInstance.Active := True;
+	except
+		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
+      TFDCustomConnection( GetInstance.Connection ).Rollback;
+	end;
+end;
+
+procedure TKrakenProviderFiredacQuery.ExecSQL;
+begin
+  try
+    GetInstance.ExecSQL;
+  except
+		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
+      TFDCustomConnection( GetInstance.Connection ).Rollback;
+    raise;
+  end;
 end;
 
 procedure TKrakenProviderFiredacQuery.Clear;

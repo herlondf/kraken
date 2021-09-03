@@ -160,6 +160,9 @@ begin
     GetInstance.SQL.Add(ASQL);
     GetInstance.Active := True;
   except
+		if TZConnection( GetInstance.Connection ).InTransaction then
+      TZConnection( GetInstance.Connection ).Rollback;
+
     raise;
   end;
 end;
@@ -172,6 +175,9 @@ begin
 
     GetInstance.Active := True;
   except
+		if TZConnection( GetInstance.Connection ).InTransaction then
+      TZConnection( GetInstance.Connection ).Rollback;
+
     raise;
   end;
 end;
@@ -181,6 +187,9 @@ begin
   try
     GetInstance.ExecSQL;
   except
+		if TZConnection( GetInstance.Connection ).InTransaction then
+      TZConnection( GetInstance.Connection ).Rollback;
+
     raise;
   end;
 end;

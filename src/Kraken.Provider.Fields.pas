@@ -7,21 +7,23 @@ uses
   System.JSON,
   REST.Response.Adapter,
   REST.Json,
-  Winapi.Windows;
+  Winapi.Windows,
+  FireDAC.Comp.Client;
 
 type
+  TFormatType = (ftString, ftDate, ftDatetime);
+
   TKrakenProviderFields = class
     constructor Create;
     destructor Destroy; override;
   private
     FField : string;
     FPos   : Integer;
-    FJSON  : TJSONArray;
+    FDataset  : TFDMemTable;
 
-    function GetJSONObject: TJSONObject;
-    function ResponsePrepare(const AValue: String): string;
+    function WhatsFormatIs(Value: string; out AResult: String): TFormatType;
   public
-    function ResponseJSON( const Value : TJSONArray ): TKrakenProviderFields;
+    function ResponseJSON( const Value : TFDMemTable ): TKrakenProviderFields;
     function Field       ( AFieldname  : String     ): TKrakenProviderFields;
     function Pos         ( APos        : Integer    ): TKrakenProviderFields;
 
@@ -59,43 +61,26 @@ begin
   FField := AnsiLowerCase( AFieldname );
 end;
 
-function TKrakenProviderFields.GetJSONObject: TJSONObject;
-var
-  LJSONObject: TJSONObject;
-begin
-  try
-    Result := FJSON.Items[FPos] as TJSONObject;
-  except
-
-  end;
-end;
-
 function TKrakenProviderFields.Pos(APos: Integer): TKrakenProviderFields;
 begin
   Result := Self;
   FPos   := APos;
 end;
 
-function TKrakenProviderFields.ResponseJSON(const Value: TJSONArray): TKrakenProviderFields;
+function TKrakenProviderFields.ResponseJSON(const Value: TFDMemTable): TKrakenProviderFields;
 begin
   Result := Self;
-  FJSON  := Value;
-end;
-
-function TKrakenProviderFields.ResponsePrepare(const AValue: String): string;
-var
-  LResult : string;
-begin
-  LResult := '';
-  LResult := Trim( AValue );
-  LResult := StringReplace( LResult , '"' , '' , [rfReplaceAll] );
-  Result  := LResult;
+  FDataset  := Value;
 end;
 
 function TKrakenProviderFields.AsCurrency: Currency;
 begin
-  if not TryStrToCurr( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+
+  try
+    result := FDataset.FieldByName(FField).AsCurrency;
+  except
     Result := 0;
+  end;
 end;
 
 function TKrakenProviderFields.AsDate: TDate;
@@ -110,7 +95,7 @@ begin
   LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
 
   try
-    if not TryStrToDate( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), TDatetime(Result), LFormatSettings ) then
+    if not TryStrToDate( FDataset.FieldByName(FField).AsString, TDatetime(Result), LFormatSettings ) then
       Result := -1;
   except
     Result := -1;
@@ -129,7 +114,7 @@ begin
   LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
 
   try
-    if not TryStrToDateTime( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result, LFormatSettings )  then
+    if not TryStrToDateTime( FDataset.FieldByName(FField).AsString, Result, LFormatSettings )  then
       Result := -1;
   except
     Result := -1;
@@ -138,15 +123,17 @@ end;
 
 function TKrakenProviderFields.AsFloat: Double;
 begin
-  if not TryJsonToFloat( GetJSONObject.GetValue( FField ).ToString, Result ) then
+  try
+    result := FDataset.FieldByName(FField).AsFloat;
+  except
     Result := 0;
+  end;
 end;
 
 function TKrakenProviderFields.AsInteger: Integer;
 begin
   try
-    if not TryStrToInt( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
-      Result := 0;
+    Result := FDataset.FieldByName(FField).AsInteger;
   except
     Result := 0;
   end;
@@ -154,48 +141,127 @@ end;
 
 function TKrakenProviderFields.AsString: string;
 begin
-  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+  if FDataset.FieldByName(FField).AsString = 'null' then
     Result := ''
   else
-    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
+  begin
+    WhatsFormatIs( FDataset.FieldByName(FField).AsString, Result );
+
+    Result := StringReplace( Result ,'\/' ,'/', [rfReplaceAll] );
+    Result := StringReplace( Result ,'\\' ,'\', [rfReplaceAll] );
+  end;
 end;
 
 function TKrakenProviderFields.AsWideString: WideString;
 begin
-  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+  if FDataset.FieldByName(FField).AsWideString = 'null' then
     Result := ''
   else
-    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
+  begin
+    Result := FDataset.FieldByName(FField).AsWideString;
+
+    Result := StringReplace( Result ,'\/' ,'/', [rfReplaceAll] );
+    Result := StringReplace( Result ,'\\' ,'\', [rfReplaceAll] );
+  end;
 end;
 
 function TKrakenProviderFields.AsXML: WideString;
 begin
-  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+  if FDataset.FieldByName(FField).AsWideString = 'null' then
     Result := ''
   else
-    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
+    Result := FDataset.FieldByName(FField).AsWideString;
 end;
 
 function TKrakenProviderFields.AsBoolean: Boolean;
 begin
-  if not TryStrToBool( ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ), Result ) then
+  if not TryStrToBool( FDataset.FieldByName(FField).AsString, Result ) then
     Result := False;
 end;
 
 function TKrakenProviderFields.IsNull: Boolean;
 begin
-  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+  if FDataset.FieldByName(FField).AsString = 'null' then
     Result := False
   else
-    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = '';
+    Result := FDataset.FieldByName(FField).AsString = '';
+end;
+
+function TKrakenProviderFields.WhatsFormatIs(Value: string; out AResult: String): TFormatType;
+var
+  LSuccess: Boolean;
+  LDate: TDateTime;
+  LValue: String;
+  LFormatSettings: TFormatSettings;
+begin
+  LFormatSettings := TFormatSettings.Create;
+  LFormatSettings.DateSeparator   := '-';
+  LFormatSettings.ShortDateFormat := 'yyyy-MM-dd';
+  LFormatSettings.TimeSeparator   := ':';
+  LFormatSettings.ShortTimeFormat := 'hh:mm';
+  LFormatSettings.LongTimeFormat  := 'hh:mm:ss';
+
+
+  // 01-01-2021
+  // 01/01/2021
+
+  // 2021-01-01
+  // 2021/01/01
+  LSuccess := False;
+  LValue := Value;
+
+  if Length(LValue) <= 10 then //Nao pode ser datetime e pode ser date
+  begin
+    if TryStrToDate(LValue, LDate) then
+    begin
+      LSuccess := True;
+      Result   := ftDate;
+      AResult  := FormatDateTime('dd-mm-yyyy', LDate);
+    end;
+  end;
+
+  if not LSuccess then
+  begin
+
+    if Length(LValue) > 10 then //Não pode ser date e pode ser datetime
+    begin
+
+
+      if ( ( System.Pos('-', LValue) > 0 ) or ( System.Pos('/', LValue) > 0 ) ) and ( System.Pos(':', LValue) > 0 ) then
+      begin
+        if System.Pos('.', LValue) > 0 then
+          LValue := Copy(
+            LValue,
+            0,
+            System.Pos('.', LValue) -1
+          );
+
+        if TryStrToDateTime(LValue, LDate, LFormatSettings) then
+        begin
+          LSuccess := True;
+          Result   := ftDatetime;
+          AResult  := FormatDateTime('dd/mm/yyyy hh:MM:ss', LDate);
+        end;
+
+      end;
+
+    end;
+
+  end;
+
+  if not LSuccess then
+  begin
+    Result  := ftString;
+    AResult := LValue;
+  end;
 end;
 
 function TKrakenProviderFields.Value: Variant;
 begin
-  if ResponsePrepare( GetJSONObject.GetValue( FField ).ToString ) = 'null' then
+  if FDataset.FieldByName(FField).AsString = 'null' then
     Result := ''
   else
-    Result := ResponsePrepare( GetJSONObject.GetValue( FField ).ToString );
+    Result := FDataset.FieldByName(FField).AsString;
 end;
 
 
