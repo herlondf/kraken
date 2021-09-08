@@ -1,0 +1,38 @@
+{
+	"hash": "5e8ff9bf55ba3508199d22e984129be6",
+	"updated": "2021-07-13T08:05:03.4712964-03:00",
+	"installedModules": {
+		"github.com/herlondf/kraken": {
+			"name": "kraken",
+			"version": "1.0.8",
+			"hash": "1a5dd15b9a4dda099ce24a3a47929132",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
+		"github.com/viggosistemas/helper-jsonparser": {
+			"name": "helper-jsonparser",
+			"version": "1.0.1",
+			"hash": "093edc37b4e15ff149e559932ccfb1e9",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
+		"github.com/viniciussanchez/dataset-serialize": {
+			"name": "dataset-serialize",
+			"version": "v2.3.3",
+			"hash": "65a1995f3a283f09382722a7a8c21d1a",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
+		"github.com/viniciussanchez/restrequest4delphi": {
+			"name": "restrequest4delphi",
+			"version": "v3.0.6",
+			"hash": "c113a36fa794862991b7d85d8a23053a",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		}
+	}
+}

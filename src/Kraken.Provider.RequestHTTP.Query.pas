@@ -19,7 +19,7 @@ uses
   Kraken.Provider.Params,
 
   Dataset.Serialize,
-  DataSet.Serialize.Config, Biblioteca,
+  DataSet.Serialize.Config,
   System.NetEncoding;
 
 type
