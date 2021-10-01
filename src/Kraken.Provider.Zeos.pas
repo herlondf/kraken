@@ -5,7 +5,7 @@ interface
 uses
   System.Classes,
   System.SysUtils,
-  System.Generics.Collections,
+  System.Generics.Collections, ShellApi ,Winapi.Windows,
 
   ZConnection,
   ZAbstractConnection,
@@ -28,6 +28,7 @@ type
     FKrakenProviderSettings: TKrakenProviderZeosSettings;
 
     procedure _SetDefaultConfig;
+    function GetDeviceName : String;
   public
     function GetInstance: TZConnection;
     function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
@@ -100,7 +101,19 @@ begin
   if FKrakenProviderSettings = nil then
     FKrakenProviderSettings := TKrakenProviderZeosSettings.Create(Self);
 
+  Properties.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
+
   Result := FKrakenProviderSettings;
+end;
+
+function TKrakenProviderZeos.GetDeviceName : String;
+var ipbuffer : string;
+      nsize : dword;
+begin
+   nsize := 255;
+   SetLength(ipbuffer,nsize);
+   if GetComputerName(pchar(ipbuffer),nsize) then
+      result := ipbuffer;
 end;
 
 function TKrakenProviderZeos.Id: String;
