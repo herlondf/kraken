@@ -6,6 +6,8 @@ uses
   System.SysUtils,
   System.Classes,
   System.Generics.Collections,
+  ShellApi,
+  Winapi.Windows,
 
   FireDAC.Comp.Client,
   FireDAC.Comp.UI,
@@ -48,6 +50,7 @@ type
     FKrakenProviderSettings: TKrakenProviderFiredacSettings;
 
     procedure _SetDefaultConfig;
+    function GetDeviceName : String;
   public
     function GetInstance: TFDConnection;
     function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
@@ -142,7 +145,20 @@ begin
   if FKrakenProviderSettings = nil then
     FKrakenProviderSettings := TKrakenProviderFiredacSettings.Create(Self);
 
+  Params.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
+  //Properties.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
+
   Result := FKrakenProviderSettings;
+end;
+
+function TKrakenProviderFiredac.GetDeviceName : String;
+var ipbuffer : string;
+      nsize : dword;
+begin
+   nsize := 255;
+   SetLength(ipbuffer,nsize);
+   if GetComputerName(pchar(ipbuffer),nsize) then
+      result := ipbuffer;
 end;
 
 function TKrakenProviderFiredac.Id: String;
