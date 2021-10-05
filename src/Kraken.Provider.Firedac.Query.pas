@@ -152,6 +152,7 @@ begin
 	except
 		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
       TFDCustomConnection( GetInstance.Connection ).Rollback;
+    raise;
 	end;
 end;
 
@@ -163,6 +164,7 @@ begin
 	except
 		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
       TFDCustomConnection( GetInstance.Connection ).Rollback;
+    raise;
 	end;
 end;
 
