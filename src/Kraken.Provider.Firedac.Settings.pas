@@ -23,6 +23,7 @@ type
     FPassword   : String;
     FDatabase   : String;
     FURLRemoto  : string;
+    FTimeout    : String;
 
     function HasAssignedIniFile: Boolean;
   public
@@ -50,6 +51,10 @@ type
     function URLRemoto(const AURLRemoto: String): TKrakenProviderFiredacSettings; overload;
     function URLRemoto(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
     function URLRemoto: String; overload;
+
+    function TimeOut(const ATimeout: String): TKrakenProviderFiredacSettings; overload;
+    function TimeOut(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
+    function Timeout: String; overload;
 
     function IniPath(const APath: String): TKrakenProviderFiredacSettings;
 
@@ -234,6 +239,27 @@ end;
 function TKrakenProviderFiredacSettings.URLRemoto: String;
 begin
   Result := FURLRemoto;
+end;
+
+function TKrakenProviderFiredacSettings.TimeOut(const ATimeout: String): TKrakenProviderFiredacSettings;
+begin
+  Result   := Self;
+  FTimeout := ATimeOut;
+
+  FConnection.Params.Add('LoginTimeout='+FTimeout);
+end;
+
+function TKrakenProviderFiredacSettings.TimeOut(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings;
+begin
+  Result := Self;
+  HasAssignedIniFile;
+
+  FTimeout := FIniFile.ReadString(ASection, AIdent, ADefault);
+end;
+
+function TKrakenProviderFiredacSettings.Timeout: String;
+begin
+  Result := FTimeout;
 end;
 
 function TKrakenProviderFiredacSettings.AsyncMode(const AMode: TFDStanAsyncMode): TKrakenProviderFiredacSettings;
