@@ -1,9 +1,0 @@
-{
-	"name": "Kraken",
-	"description": "Abstract class of connection",
-	"version": "1.0.0",
-	"homepage": "https://github.com/herlondf/kraken",
-	"mainsrc": "./src",
-	"projects": [],
-	"dependencies": {}
-}

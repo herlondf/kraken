@@ -54,7 +54,7 @@ type
 
     function TimeOut(const ATimeout: String): TKrakenProviderFiredacSettings; overload;
     function TimeOut(const ASection, AIdent, ADefault: String): TKrakenProviderFiredacSettings; overload;
-    function Timeout: String; overload;
+    function Timeout: Integer; overload;
 
     function IniPath(const APath: String): TKrakenProviderFiredacSettings;
 
@@ -64,7 +64,7 @@ type
     function AsyncMode(const AMode: TFDStanAsyncMode): TKrakenProviderFiredacSettings;
 
     ///<summary>            Define o autocommit de transacoes (insert, update, delete)            </summary>
-    ///<param name="AMode"> Se falso, deve usar o StartTransaction e Commit                       </param>
+    ///<param name="AMode"> Se verdadeiro, deve usar o StartTransaction e Commit                  </param>
     ///<remarks>            Default: False                                                        </remarks>
     function AutoCommit(const AMode: Boolean): TKrakenProviderFiredacSettings;
 
@@ -257,9 +257,9 @@ begin
   FTimeout := FIniFile.ReadString(ASection, AIdent, ADefault);
 end;
 
-function TKrakenProviderFiredacSettings.Timeout: String;
+function TKrakenProviderFiredacSettings.Timeout: Integer;
 begin
-  Result := FTimeout;
+  Result := StrToIntDef(FTimeout, 0);
 end;
 
 function TKrakenProviderFiredacSettings.AsyncMode(const AMode: TFDStanAsyncMode): TKrakenProviderFiredacSettings;

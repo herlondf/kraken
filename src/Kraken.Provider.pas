@@ -3,9 +3,16 @@ unit Kraken.Provider;
 interface
 
 uses
-  Kraken.Provider.Zeos,
-  Kraken.Provider.Firedac,
-  Kraken.Provider.RequestHTTP;
+  {$IF DEFINED(KRAKEN_FIREDAC)}
+  Kraken.Provider.Firedac;
+  {$ELSE}
+    {$IF DEFINED(KRAKEN_REQUESTHTTP)}
+    Kraken.Provider.RequestHTTP;
+    {$ELSE}
+    Kraken.Provider.Zeos;
+  {$ENDIF}
+{$ENDIF}
+
 
 type
 {$IF DEFINED(KRAKEN_FIREDAC)}

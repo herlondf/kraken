@@ -3,9 +3,15 @@ unit Kraken.Provider.Query;
 interface
 
 uses
-  Kraken.Provider.Zeos.Query,
-  Kraken.Provider.Firedac.Query,
-  Kraken.Provider.RequestHTTP.Query;
+  {$IF DEFINED(KRAKEN_FIREDAC)}
+    Kraken.Provider.Firedac.Query;
+  {$ELSE}
+    {$IF DEFINED(KRAKEN_REQUESTHTTP)}
+      Kraken.Provider.RequestHTTP.Query;
+    {$ELSE}
+      Kraken.Provider.Zeos.Query;
+    {$ENDIF}
+  {$ENDIF}
 
 type
 {$IF DEFINED(KRAKEN_FIREDAC)}
@@ -17,9 +23,6 @@ type
     TKrakenProviderQuery = Kraken.Provider.Zeos.Query.TKrakenProviderZeosQuery;
   {$ENDIF}
 {$ENDIF}
-
-
-
 
 implementation
 

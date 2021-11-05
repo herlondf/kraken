@@ -11,10 +11,14 @@ uses
   FireDAC.Phys.FBDef,
   FireDAC.Phys.IBBase,
   FireDAC.Phys.FB,
-  FireDAC.Phys.Intf;
+  FireDAC.Phys.Intf,
+  FireDAC.Stan.ExprFuncs,
+  FireDAC.Phys.SQLiteDef,
+  FireDAC.Stan.Intf,
+  FireDAC.Phys.SQLite;
   {$ELSE}
   ZDbcIntfs,
-  ZConnection;
+  ZConnection, System.SysUtils;
   {$ENDIF}
 
 type
@@ -22,9 +26,11 @@ type
     {$IF DEFINED(KRAKEN_FIREDAC)}
     class procedure Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
     class procedure Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+    class procedure SQLite  (AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
     {$ELSE}
     class procedure Postgres(AConnection: TZConnection);
     class procedure Firebird(AConnection: TZConnection);
+    class procedure SQLite  (AConnection: TZConnection);
     {$ENDIF}
   end;
 
@@ -50,6 +56,15 @@ begin
   AConnection.DriverName := 'FB';
 end;
 
+class procedure TKrakenProviderTypes.SQLite(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+begin
+  ADriver      := TFDPhysSQLiteDriverLink.Create(AConnection);
+  ADriver.Name := 'SQLite';
+
+
+  AConnection.DriverName := 'SQLite';
+end;
+
 {$ELSE}
 
 class procedure TKrakenProviderTypes.Postgres(AConnection: TZConnection);
@@ -66,6 +81,11 @@ begin
   AConnection.Properties.Values['codepage'] := 'utf-8';
   AConnection.TransactIsolationLevel := tiReadUncommitted;
   AConnection.AutoCommit := False;
+end;
+
+class procedure TKrakenProviderTypes.SQLite(AConnection: TZConnection);
+begin
+  raise Exception.Create('Driver not implemented.');
 end;
 
 {$ENDIF}

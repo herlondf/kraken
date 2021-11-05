@@ -20,6 +20,7 @@ type
     FPassword   : String;
     FDatabase   : String;
     FURLRemoto  : string;
+    FTimeout    : String;
 
     function HasAssignedIniFile: Boolean;
   public
@@ -47,6 +48,10 @@ type
     function URLRemoto(const AURLRemoto: String): TKrakenProviderZeosSettings; overload;
     function URLRemoto(const ASection, AIdent, ADefault: String): TKrakenProviderZeosSettings; overload;
     function URLRemoto: String; overload;
+
+    function TimeOut(const ATimeout: String): TKrakenProviderZeosSettings; overload;
+    function TimeOut(const ASection, AIdent, ADefault: String): TKrakenProviderZeosSettings; overload;
+    function Timeout: Integer; overload;
 
     function IniPath(const APath: String): TKrakenProviderZeosSettings;
 
@@ -176,6 +181,25 @@ end;
 function TKrakenProviderZeosSettings.URLRemoto: String;
 begin
   Result := FURLRemoto;
+end;
+
+function TKrakenProviderZeosSettings.TimeOut(const ATimeout: String): TKrakenProviderZeosSettings;
+begin
+  Result   := Self;
+  FTimeout := ATimeOut;
+end;
+
+function TKrakenProviderZeosSettings.TimeOut(const ASection, AIdent, ADefault: String): TKrakenProviderZeosSettings;
+begin
+  Result := Self;
+  HasAssignedIniFile;
+
+  FTimeout := FIniFile.ReadString(ASection, AIdent, ADefault);
+end;
+
+function TKrakenProviderZeosSettings.Timeout: Integer;
+begin
+  Result := StrToIntDef(FTimeout, 0);
 end;
 
 function TKrakenProviderZeosSettings.Username: String;
