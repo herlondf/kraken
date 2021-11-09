@@ -94,7 +94,6 @@ begin
   end;
 
   Result := Format(
-                                                           + sLineBreak +
       '/*-----------------------------------------------'  + sLineBreak +
       'Data......: %s as %s '                              + sLineBreak +
       'Registros.: %s '                                    + sLineBreak +

@@ -51,6 +51,7 @@ type
     FKrakenQuerys          : TKrakenQuerys;
     FKrakenMetadatas       : TKrakenMetas;
     FKrakenProviderSettings: TKrakenProviderFiredacSettings;
+    LIdTCPClient: TIdTCPClient;
 
     procedure _SetDefaultConfig;
     function GetDeviceName : String;
@@ -91,6 +92,8 @@ begin
 
   _SetDefaultConfig;
 
+  LIdTCPClient := TIdTCPClient.Create(Self);
+
   FKrakenQuerys := TKrakenQuerys.Create();
   FKrakenMetadatas := TKrakenMetas.Create();
 end;
@@ -108,6 +111,9 @@ begin
 
   if FKrakenMetadatas <> nil then
     FreeAndNil(FKrakenMetadatas);
+
+  if Assigned(LIdTCPClient) then
+    FreeAndNil(LIdTCPClient);
 
   inherited;
 end;
@@ -194,28 +200,21 @@ begin
 end;
 
 function TKrakenProviderFiredac.ConnectionInternalTest: Boolean;
-var
-  IdTCPClient: TIdTCPClient;
 begin
-  IdTCPClient := TIdTCPClient.Create(nil);
-
+  Result := False;
   try
-    with IdTCPClient do
     try
-      Host           := Settings.Host;
-      Port           := Settings.Port;
-      ConnectTimeout := Settings.TimeOut;
-      Connect;
+      LIdTCPClient.Host           := Settings.Host;
+      LIdTCPClient.Port           := Settings.Port;
+      LIdTCPClient.ConnectTimeout := Settings.TimeOut;
+      LIdTCPClient.Connect;
     finally
-      Result := True;
-      if Assigned(IdTCPClient) then FreeAndNil(IdTCPClient);
+      Result := LIdTCPClient.Connected;
     end;
   except
     on e: exception do
     begin
       KrakenLOG.Error(E.Message);
-      Result := False;
-      if Assigned(IdTCPClient) then FreeAndNil(IdTCPClient);
 
       raise;
     end;

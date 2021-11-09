@@ -32,6 +32,10 @@ type
     FKrakenQuerys          : TKrakenQuerys;
     FKrakenProviderSettings: TKrakenProviderZeosSettings;
 
+    LIdTCPClient: TIdTCPClient;
+
+    procedure IdTCPClientDisconnected(Sender: TObject);
+
     procedure _SetDefaultConfig;
     function GetDeviceName : String;
 
@@ -65,6 +69,8 @@ constructor TKrakenProviderZeos.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  LIdTCPClient := TIdTCPClient.Create(Self);
+
   _SetDefaultConfig;
 
   FKrakenQuerys := TKrakenQuerys.Create();
@@ -78,14 +84,37 @@ begin
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
 
+  if Assigned(LIdTCPClient) then
+    FreeAndNil(LIdTCPClient);
+
   inherited;
+end;
+
+//Falta testar
+procedure TKrakenProviderZeos.IdTCPClientDisconnected(Sender: TObject);
+begin
+  try
+    try
+      GetInstance.Disconnect;
+
+      while not GetInstance.Connected do
+      begin
+        GetInstance.Connect := True;
+        Sleep(10000);
+      end;
+    finally
+
+    end;
+  except
+
+  end;
 end;
 
 procedure TKrakenProviderZeos._SetDefaultConfig;
 begin
   GetInstance.AutoCommit := False;
   GetInstance.Properties.Values['codepage'] := 'utf-8';
-  GetInstance.TransactIsolationLevel := tiReadUncommitted;
+  GetInstance.TransactIsolationLevel := tiReadCommitted;
 end;
 
 function TKrakenProviderZeos.GetInstance: TZConnection;
@@ -151,28 +180,21 @@ begin
 end;
 
 function TKrakenProviderZeos.ConnectionInternalTest: Boolean;
-var
-  IdTCPClient: TIdTCPClient;
 begin
-  IdTCPClient := TIdTCPClient.Create(nil);
-
+  Result := False;
   try
-    with IdTCPClient do
     try
-      Host           := Settings.Host;
-      Port           := Settings.Port;
-      ConnectTimeout := Settings.TimeOut;
-      Connect;
+      LIdTCPClient.Host           := Settings.Host;
+      LIdTCPClient.Port           := Settings.Port;
+      LIdTCPClient.ConnectTimeout := Settings.TimeOut;
+      LIdTCPClient.Connect;
     finally
-      Result := True;
-      if Assigned(IdTCPClient) then FreeAndNil(IdTCPClient);
+      Result := LIdTCPClient.Connected;
     end;
   except
     on e: exception do
     begin
       KrakenLOG.Error(E.Message);
-      Result := False;
-      if Assigned(IdTCPClient) then FreeAndNil(IdTCPClient);
 
       raise;
     end;
