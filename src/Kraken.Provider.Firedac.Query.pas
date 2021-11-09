@@ -99,12 +99,13 @@ begin
   end;
 
   Result := Format(
+      ''                                                   + sLineBreak +
       '/*-----------------------------------------------'  + sLineBreak +
       'Data......: %s as %s '                              + sLineBreak +
       'Registros.: %s '                                    + sLineBreak +
       'Parametros: %s '                                    + sLineBreak +
       '/*-----------------------------------------------'  + sLineBreak +
-                                                           + sLineBreak +
+      ''                                                   + sLineBreak +
       '%s'
     ,
     [

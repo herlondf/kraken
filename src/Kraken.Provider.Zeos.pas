@@ -99,7 +99,7 @@ begin
 
       while not GetInstance.Connected do
       begin
-        GetInstance.Connect := True;
+        GetInstance.Connected := True;
         Sleep(10000);
       end;
     finally
