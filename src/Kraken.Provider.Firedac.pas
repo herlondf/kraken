@@ -234,11 +234,10 @@ procedure TKrakenProviderFiredac.StartTransaction;
 var
   LSQL: string;
 begin
-  if GetInstance.InTransaction then Exit;
-
   try
     if GetInstance.TxOptions.AutoCommit then
-      GetInstance.StartTransaction
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
     else
     begin
       LSQL := Query.SQL.Text;
@@ -253,8 +252,10 @@ begin
   except
     on e: exception do
     begin
+      Rollback;
       if LSQL <> '' then Query.SQL.Text := LSQL;
       KrakenLOG.Error(E.Message);
+      raise;
     end;
   end;
 end;
@@ -263,11 +264,10 @@ procedure TKrakenProviderFiredac.Commit;
 var
   LSQL: string;
 begin
-  if GetInstance.InTransaction then Exit;
-
   try
     if GetInstance.TxOptions.AutoCommit then
-      GetInstance.StartTransaction
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
     else
     begin
       LSQL := Query.SQL.Text;
@@ -282,8 +282,10 @@ begin
   except
     on e: exception do
     begin
+      Rollback;
       if LSQL <> '' then Query.SQL.Text := LSQL;
       KrakenLOG.Error(E.Message);
+      raise;
     end;
   end;
 end;
@@ -313,6 +315,7 @@ begin
     begin
       if LSQL <> '' then Query.SQL.Text := LSQL;
       KrakenLOG.Error(E.Message);
+      raise;
     end;
   end;
 end;

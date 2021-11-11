@@ -167,6 +167,7 @@ end;
 
 function TKrakenProviderZeos.Connect: Boolean;
 begin
+  Result := False;
   try
     try
       if ( not Connected ) and ( ConnectionInternalTest ) then
@@ -175,7 +176,7 @@ begin
       Result := True;
     end;
   except
-    Result := False;
+
   end;
 end;
 
@@ -214,11 +215,10 @@ procedure TKrakenProviderZeos.StartTransaction;
 var
   LSQL: string;
 begin
-  if GetInstance.InTransaction then Exit;
-
   try
     if GetInstance.AutoCommit then
-      GetInstance.StartTransaction
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
     else
     begin
       LSQL := Query.SQL.Text;
@@ -233,8 +233,10 @@ begin
   except
     on e: exception do
     begin
+      Rollback;
       if LSQL <> '' then Query.SQL.Text := LSQL;
       KrakenLOG.Error(E.Message);
+      raise;
     end;
   end;
 end;
@@ -243,11 +245,10 @@ procedure TKrakenProviderZeos.Commit;
 var
   LSQL: string;
 begin
-  if GetInstance.InTransaction then Exit;
-
   try
     if GetInstance.AutoCommit then
-      GetInstance.StartTransaction
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
     else
     begin
       LSQL := Query.SQL.Text;
@@ -262,8 +263,10 @@ begin
   except
     on e: exception do
     begin
+      Rollback;
       if LSQL <> '' then Query.SQL.Text := LSQL;
       KrakenLOG.Error(E.Message);
+      raise;
     end;
   end;
 end;
@@ -293,6 +296,7 @@ begin
     begin
       if LSQL <> '' then Query.SQL.Text := LSQL;
       KrakenLOG.Error(E.Message);
+      raise;
     end;
   end;
 end;

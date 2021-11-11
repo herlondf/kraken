@@ -81,13 +81,19 @@ var
   I            : Integer;
   LParams      : TStringList;
   LRecordCount : String;
+  LQuery       : string;
 begin
   Result := '';
 
   LParams := TStringLIst.Create;
+  LQuery  := SQL.GetText;
 
   for I := 0 to Pred( Params.Count ) do
+  begin
     LParams.AddPair( '- ' + Params[I].Name, Params[I].AsString );
+
+    StringReplace( LQuery, ':'+Params[I].Name, Params[I].AsString + '{' + Params[I].Name + '}', [rfReplaceAll, rfIgnoreCase] );
+  end;
 
   try
     if Self.Active then
@@ -97,6 +103,9 @@ begin
   except
     LRecordCount := '0';
   end;
+
+
+
 
   Result := Format(
       ''                                                   + sLineBreak +
@@ -113,9 +122,10 @@ begin
       FormatDateTime( 'hh:mm:ss  ', Now ),
       LRecordCount,
       LParams.Text,
-      SQL.GetText
+      LQuery
     ]
   );
+
 
   LParams.Free;
 end;
@@ -133,9 +143,7 @@ begin
     on e: Exception do
     begin
       KrakenLOG.Fatal( SaveQuery );
-
       TKrakenProviderFiredac(FOwner).Rollback;
-
       raise;
     end;
 	end;
@@ -152,9 +160,7 @@ begin
     on e: Exception do
     begin
       KrakenLOG.Fatal( SaveQuery );
-
 		  TKrakenProviderFiredac(FOwner).Rollback;
-
       raise;
     end;
 	end;
@@ -170,9 +176,7 @@ begin
     on e: Exception do
     begin
       KrakenLOG.Fatal( SaveQuery );
-
 		  TKrakenProviderFiredac(FOwner).Rollback;
-
       raise;
     end;
   end;
