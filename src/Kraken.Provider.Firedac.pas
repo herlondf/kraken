@@ -187,6 +187,7 @@ end;
 
 function TKrakenProviderFiredac.Connect: Boolean;
 begin
+  Result := False;
   try
     try
       if ( not Connected ) and ( ConnectionInternalTest ) then
@@ -195,13 +196,20 @@ begin
       Result := True;
     end;
   except
-    Result := False;
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 function TKrakenProviderFiredac.ConnectionInternalTest: Boolean;
 begin
-  Result := False;
+  Result := LIdTCPClient.Connected;
+
+  if LIdTCPClient.Connected then Exit;
+
   try
     try
       LIdTCPClient.Host           := Settings.Host;

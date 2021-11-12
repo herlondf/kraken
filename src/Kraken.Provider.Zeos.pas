@@ -171,18 +171,25 @@ begin
   try
     try
       if ( not Connected ) and ( ConnectionInternalTest ) then
-        GetInstance.Connected := True;
+        GetInstance.Connect;
     finally
       Result := True;
     end;
   except
-
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 function TKrakenProviderZeos.ConnectionInternalTest: Boolean;
 begin
-  Result := False;
+  Result := LIdTCPClient.Connected;
+
+  if LIdTCPClient.Connected then Exit;
+
   try
     try
       LIdTCPClient.Host           := Settings.Host;
