@@ -104,9 +104,6 @@ begin
     LRecordCount := '0';
   end;
 
-
-
-
   Result := Format(
       ''                                                   + sLineBreak +
       '/*-----------------------------------------------'  + sLineBreak +
@@ -126,7 +123,6 @@ begin
     ]
   );
 
-
   LParams.Free;
 end;
 
@@ -137,7 +133,8 @@ begin
 	try
 		GetInstance.SQL.Clear;
 		GetInstance.SQL.Add(ASQL);
-		GetInstance.Prepare;
+    if not GetInstance.Prepared then
+		  GetInstance.Prepare;
 		GetInstance.Active := True;
 	except
     on e: Exception do
@@ -154,7 +151,8 @@ begin
   if ALog then KrakenLOG.Trace( SaveQuery );
 
 	try
-		GetInstance.Prepare;
+    if not GetInstance.Prepared then
+		  GetInstance.Prepare;
 		GetInstance.Active := True;
 	except
     on e: Exception do

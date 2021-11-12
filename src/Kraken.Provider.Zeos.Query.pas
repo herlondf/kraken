@@ -99,9 +99,6 @@ begin
     LRecordCount := '0';
   end;
 
-
-
-
   Result := Format(
       ''                                                   + sLineBreak +
       '/*-----------------------------------------------'  + sLineBreak +
@@ -120,7 +117,6 @@ begin
       LQuery
     ]
   );
-
 
   LParams.Free;
 end;
@@ -152,7 +148,7 @@ begin
 
   try
     if not GetInstance.Prepared then
-    GetInstance.Prepare;
+      GetInstance.Prepare;
 
     GetInstance.Active := True;
   except

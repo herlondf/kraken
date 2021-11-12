@@ -223,7 +223,6 @@ begin
     on e: exception do
     begin
       KrakenLOG.Error(E.Message);
-
       raise;
     end;
   end;
@@ -234,7 +233,11 @@ begin
   try
     GetInstance.Close;
   except
-    on e: exception do KrakenLOG.Error(E.Message);
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
@@ -244,18 +247,16 @@ var
 begin
   try
     if GetInstance.TxOptions.AutoCommit then
+    begin
       if not GetInstance.InTransaction then
         GetInstance.StartTransaction
+    end
     else
     begin
       LSQL := Query.SQL.Text;
-      try
-        Query.SQL.Clear;
-        Query.SQL.Add('BEGIN');
-        Query.ExecSQL;
-      finally
-        Query.SQL.Text := LSQL;
-      end;
+      Query.SQL.Text := 'BEGIN';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
     end;
   except
     on e: exception do
@@ -270,22 +271,20 @@ end;
 
 procedure TKrakenProviderFiredac.Commit;
 var
-  LSQL: string;
+  LSQL: String;
 begin
   try
     if GetInstance.TxOptions.AutoCommit then
-      if not GetInstance.InTransaction then
-        GetInstance.StartTransaction
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Commit
+    end
     else
     begin
       LSQL := Query.SQL.Text;
-      try
-        Query.SQL.Clear;
-        Query.SQL.Add('COMMIT');
-        Query.ExecSQL;
-      finally
-        Query.SQL.Text := LSQL;
-      end;
+      Query.SQL.Text := 'COMMIT';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
     end;
   except
     on e: exception do
@@ -300,23 +299,22 @@ end;
 
 procedure TKrakenProviderFiredac.Rollback;
 var
-  LSQL: string;
+  LSQL: String;
 begin
   try
     if GetInstance.TxOptions.AutoCommit then
-      if not GetInstance.InTransaction then
-        GetInstance.StartTransaction
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Rollback
+    end
     else
     begin
       LSQL := Query.SQL.Text;
-      try
-        Query.SQL.Clear;
-        Query.SQL.Add('ROLLBACK');
-        Query.ExecSQL;
-      finally
-        Query.SQL.Text := LSQL;
-      end;
+      Query.SQL.Text := 'ROLLBACK';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
     end;
+
   except
     on e: exception do
     begin

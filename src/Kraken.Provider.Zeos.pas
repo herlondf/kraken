@@ -114,7 +114,7 @@ procedure TKrakenProviderZeos._SetDefaultConfig;
 begin
   GetInstance.AutoCommit := False;
   GetInstance.Properties.Values['codepage'] := 'utf-8';
-  GetInstance.TransactIsolationLevel := tiReadCommitted;
+  GetInstance.TransactIsolationLevel := tiNone;
 end;
 
 function TKrakenProviderZeos.GetInstance: TZConnection;
@@ -203,7 +203,6 @@ begin
     on e: exception do
     begin
       KrakenLOG.Error(E.Message);
-
       raise;
     end;
   end;
@@ -214,7 +213,11 @@ begin
   try
     GetInstance.Disconnect;
   except
-
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
@@ -224,18 +227,16 @@ var
 begin
   try
     if GetInstance.AutoCommit then
+    begin
       if not GetInstance.InTransaction then
         GetInstance.StartTransaction
+    end
     else
     begin
       LSQL := Query.SQL.Text;
-      try
-        Query.SQL.Clear;
-        Query.SQL.Add('BEGIN');
-        Query.ExecSQL;
-      finally
-        Query.SQL.Text := LSQL;
-      end;
+      Query.SQL.Text := 'BEGIN';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
     end;
   except
     on e: exception do
@@ -250,22 +251,20 @@ end;
 
 procedure TKrakenProviderZeos.Commit;
 var
-  LSQL: string;
+  LSQL: String;
 begin
   try
     if GetInstance.AutoCommit then
-      if not GetInstance.InTransaction then
-        GetInstance.StartTransaction
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Commit
+    end
     else
     begin
       LSQL := Query.SQL.Text;
-      try
-        Query.SQL.Clear;
-        Query.SQL.Add('COMMIT');
-        Query.ExecSQL;
-      finally
-        Query.SQL.Text := LSQL;
-      end;
+      Query.SQL.Text := 'COMMIT';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
     end;
   except
     on e: exception do
@@ -280,23 +279,22 @@ end;
 
 procedure TKrakenProviderZeos.Rollback;
 var
-  LSQL: string;
+  LSQL: String;
 begin
   try
     if GetInstance.AutoCommit then
-      if not GetInstance.InTransaction then
-        GetInstance.StartTransaction
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Rollback
+    end
     else
     begin
       LSQL := Query.SQL.Text;
-      try
-        Query.SQL.Clear;
-        Query.SQL.Add('ROLLBACK');
-        Query.ExecSQL;
-      finally
-        Query.SQL.Text := LSQL;
-      end;
+      Query.SQL.Text := 'ROLLBACK';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
     end;
+
   except
     on e: exception do
     begin
