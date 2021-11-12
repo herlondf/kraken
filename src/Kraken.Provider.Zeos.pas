@@ -282,11 +282,10 @@ procedure TKrakenProviderZeos.Rollback;
 var
   LSQL: string;
 begin
-  if GetInstance.InTransaction then Exit;
-
   try
     if GetInstance.AutoCommit then
-      GetInstance.StartTransaction
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
     else
     begin
       LSQL := Query.SQL.Text;
