@@ -23,6 +23,8 @@ type
       FKrakenQuerys          : TKrakenQuerys;
       FKrakenProviderSettings: TKrakenProviderRequestHTTPSettings;
       FStartTransaction      : Boolean;
+			FConnected             : boolean;
+			
 
       procedure _SetDefaultConfig;
     public
@@ -78,17 +80,17 @@ end;
 
 procedure TKrakenProviderRequestHTTP.Connect;
 begin
-
+	FConnected := ttue;
 end;
 
 function TKrakenProviderRequestHTTP.Connected: Boolean;
 begin
-
+	result := FConnected;
 end;
 
 procedure TKrakenProviderRequestHTTP.Disconnect;
 begin
-
+	FConnected := false;
 end;
 
 function TKrakenProviderRequestHTTP.GetInstance: TKrakenProviderRequestHTTP;
