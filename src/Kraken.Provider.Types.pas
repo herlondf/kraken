@@ -3,6 +3,8 @@ unit Kraken.Provider.Types;
 interface
 
 uses
+  System.SysUtils,
+  System.Classes,
   {$IF DEFINED(KRAKEN_FIREDAC)}
   FireDAC.Comp.Client,
   FireDAC.Phys.PGDef,
@@ -18,76 +20,88 @@ uses
   FireDAC.Phys.SQLite;
   {$ELSE}
   ZDbcIntfs,
-  ZConnection, System.SysUtils;
+  ZConnection;
   {$ENDIF}
 
 type
-  TKrakenProviderTypes = class
-    {$IF DEFINED(KRAKEN_FIREDAC)}
-    class procedure Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
-    class procedure Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
-    class procedure SQLite  (AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
-    {$ELSE}
-    class procedure Postgres(AConnection: TZConnection);
-    class procedure Firebird(AConnection: TZConnection);
-    class procedure SQLite  (AConnection: TZConnection);
-    {$ENDIF}
+  TKrakenProviderTypes<T: class, constructor> = class
+  private
+    FReturn: T;
+    FDriver: TComponent;
+
+    FConnection: {$IF DEFINED(KRAKEN_FIREDAC)} TFDConnection; {$ELSE} TZConnection; {$ENDIF}
+
+    destructor Destroy; override;
+  public
+    constructor Create(AOwner: T);
+
+    function Postgres: T;
+    function Firebird: T;
+    function SQLite  : T;
   end;
 
 implementation
 
 { TKrakenProviderTypes }
 
-{$IF DEFINED(KRAKEN_FIREDAC)}
-
-class procedure TKrakenProviderTypes.Postgres(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+constructor TKrakenProviderTypes<T>.Create(AOwner: T);
 begin
-  ADriver                := TFDPhysPgDriverLink.Create(AConnection);
-  ADriver.Name           := 'PGDriver';
-  ADriver.VendorLib      := 'libpq.dll';
-  AConnection.DriverName := 'PG';
+  FReturn     := AOwner;
+  FConnection := {$IF DEFINED(KRAKEN_FIREDAC)} TFDConnection(AOwner); {$ELSE} TZConnection(AOwner); {$ENDIF}
 end;
 
-class procedure TKrakenProviderTypes.Firebird(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+destructor TKrakenProviderTypes<T>.Destroy;
 begin
-  ADriver      := TFDPhysFBDriverLink.Create(AConnection);
-  ADriver.Name := 'FBDriver';
+  if Assigned(FDriver) then
+    FreeAndNil(FDriver);
 
-  AConnection.DriverName := 'FB';
+  inherited;
 end;
 
-class procedure TKrakenProviderTypes.SQLite(AConnection: TFDConnection; out ADriver: TFDPhysDriverLink);
+function TKrakenProviderTypes<T>.Postgres: T;
 begin
-  ADriver      := TFDPhysSQLiteDriverLink.Create(AConnection);
-  ADriver.Name := 'SQLite';
+  {$IF DEFINED(KRAKEN_FIREDAC)}
+  FDriver := TFDPhysPgDriverLink.Create(FConnection);
+  TFDPhysPgDriverLink(FDriver).Name := 'PGDriver';
+  TFDPhysPgDriverLink(FDriver).VendorLib := 'libpq.dll';
+  FConnection.DriverName := 'PG';
+  {$ELSE}
+  FConnection.Protocol := 'postgresql-9';
+  FConnection.Properties.Values['codepage'] := 'utf-8';
+  FConnection.TransactIsolationLevel := tiReadUncommitted;
+  FConnection.AutoCommit := False;
+  {$ENDIF}
 
-
-  AConnection.DriverName := 'SQLite';
+  Result := FReturn;
 end;
 
-{$ELSE}
-
-class procedure TKrakenProviderTypes.Postgres(AConnection: TZConnection);
+function TKrakenProviderTypes<T>.Firebird: T;
 begin
-  AConnection.Protocol := 'postgresql-9';
-  AConnection.Properties.Values['codepage'] := 'utf-8';
-  AConnection.TransactIsolationLevel := tiReadUncommitted;
-  AConnection.AutoCommit := False;
+  {$IF DEFINED(KRAKEN_FIREDAC)}
+  FDriver := TFDPhysFBDriverLink.Create(FConnection);
+  TFDPhysFBDriverLink(FDriver).Name := 'FBDriver';
+  FConnection.DriverName := 'FB';
+  {$ELSE}
+  FConnection.Protocol := 'firebird-2.5';
+  FConnection.Properties.Values['codepage'] := 'utf-8';
+  FConnection.TransactIsolationLevel := tiReadUncommitted;
+  FConnection.AutoCommit := False;
+  {$ENDIF}
+
+  Result := FReturn;
 end;
 
-class procedure TKrakenProviderTypes.Firebird(AConnection: TZConnection);
+function TKrakenProviderTypes<T>.SQLite: T;
 begin
-  AConnection.Protocol := 'firebird-2.5';
-  AConnection.Properties.Values['codepage'] := 'utf-8';
-  AConnection.TransactIsolationLevel := tiReadUncommitted;
-  AConnection.AutoCommit := False;
-end;
-
-class procedure TKrakenProviderTypes.SQLite(AConnection: TZConnection);
-begin
+  {$IF DEFINED(KRAKEN_FIREDAC)}
+  FDriver := TFDPhysSQLiteDriverLink.Create(FConnection);
+  TFDPhysSQLiteDriverLink(FDriver).Name := 'SQLite';
+  FConnection.DriverName := 'SQLite';
+  {$ELSE}
   raise Exception.Create('Driver not implemented.');
-end;
+  {$ENDIF}
 
-{$ENDIF}
+  Result := FReturn;
+end;
 
 end.

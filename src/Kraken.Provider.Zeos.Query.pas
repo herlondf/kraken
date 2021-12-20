@@ -8,6 +8,7 @@ uses
 
   Kraken.Log,
 
+  Data.DB,
   ZDataset,
   ZConnection;
 
@@ -85,9 +86,15 @@ begin
 
   for I := 0 to Pred( Params.Count ) do
   begin
-    LParams.AddPair( '- ' + Params[I].Name, Params[I].AsString );
+    if Params[I].IsNull then
+      Params[I].Clear
+    else
+    if Params[I].DataType in [ftString, ftDate, ftTime, ftDateTime, ftWideString] then
+      LQuery := StringReplace( LQuery, ':'+Params[I].Name, '''' + Params[I].AsString, [rfIgnoreCase] )
+    else
+      LQuery := StringReplace( LQuery, ':'+Params[I].Name, Params[I].AsString, [rfIgnoreCase] );
 
-    StringReplace( LQuery, ':'+Params[I].Name, Params[I].AsString + '{' + Params[I].Name + '}', [rfReplaceAll, rfIgnoreCase] );
+    LParams.AddPair( '- ' + Params[I].Name, Params[I].AsString );
   end;
 
   try

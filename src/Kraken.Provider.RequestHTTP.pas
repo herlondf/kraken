@@ -8,7 +8,7 @@ uses
   System.Generics.Collections,
 
   Kraken.Consts,
-  Kraken.Provider.RequestHTTP.Settings,
+  Kraken.Provider.Settings,
   Kraken.Provider.RequestHTTP.Query,
   Kraken.Provider.Types;
 
@@ -20,17 +20,17 @@ type
       destructor Destroy; override;
     private
       FId                    : String;
+
       FKrakenQuerys          : TKrakenQuerys;
-      FKrakenProviderSettings: TKrakenProviderRequestHTTPSettings;
-      FStartTransaction      : Boolean;
-			FConnected             : boolean;
-			
+      FKrakenProviderSettings: TKrakenProviderSettings<TKrakenProviderRequestHTTP>;
+      FKrakenProviderTypes   : TKrakenProviderTypes<TKrakenProviderRequestHTTP>;
 
       procedure _SetDefaultConfig;
     public
       function GetInstance: TKrakenProviderRequestHTTP;
-      function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderRequestHTTP;
-      function Settings: TKrakenProviderRequestHTTPSettings;
+
+      function ProviderType: TKrakenProviderTypes<TKrakenProviderRequestHTTP>;
+      function Settings: TKrakenProviderSettings<TKrakenProviderRequestHTTP>;
 
       function Id(const Value: String): TKrakenProviderRequestHTTP; overload;
       function Id: String; overload;
@@ -64,6 +64,9 @@ begin
   if FKrakenProviderSettings <> nil then
     FreeAndNil(FKrakenProviderSettings);
 
+  if FKrakenProviderTypes <> nil then
+    FreeAndNil(FKrakenProviderTypes);
+
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
 
@@ -80,17 +83,17 @@ end;
 
 procedure TKrakenProviderRequestHTTP.Connect;
 begin
-	FConnected := ttue;
+
 end;
 
 function TKrakenProviderRequestHTTP.Connected: Boolean;
 begin
-	result := FConnected;
+
 end;
 
 procedure TKrakenProviderRequestHTTP.Disconnect;
 begin
-	FConnected := false;
+
 end;
 
 function TKrakenProviderRequestHTTP.GetInstance: TKrakenProviderRequestHTTP;
@@ -103,15 +106,17 @@ begin
   Result := FId;
 end;
 
+function TKrakenProviderRequestHTTP.ProviderType: TKrakenProviderTypes<TKrakenProviderRequestHTTP>;
+begin
+  if not Assigned(FKrakenProviderTypes) then
+    FKrakenProviderTypes := TKrakenProviderTypes<TKrakenProviderRequestHTTP>.Create(Self);
+  Result := FKrakenProviderTypes;
+end;
+
 function TKrakenProviderRequestHTTP.Id(const Value: String): TKrakenProviderRequestHTTP;
 begin
   Result := Self;
   FId    := Value;
-end;
-
-function TKrakenProviderRequestHTTP.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderRequestHTTP;
-begin
-  Result := Self;
 end;
 
 function TKrakenProviderRequestHTTP.Query(const AId: Integer): TKrakenProviderRequestHTTPQuery;
@@ -149,9 +154,7 @@ begin
   if FKrakenQuerys.Count > 0 then
     Result := FKrakenQuerys.First
   else
-  begin
     Result := Query('Default');
-  end;
 end;
 
 function TKrakenProviderRequestHTTP.Querys: TKrakenQuerys;
@@ -165,12 +168,13 @@ begin
     FKrakenQuerys.First.StartTransaction(False);
 end;
 
-function TKrakenProviderRequestHTTP.Settings: TKrakenProviderRequestHTTPSettings;
+function TKrakenProviderRequestHTTP.Settings: TKrakenProviderSettings<TKrakenProviderRequestHTTP>;
 begin
   if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderRequestHTTPSettings.Create;
-
+    FKrakenProviderSettings := TKrakenProviderSettings<TKrakenProviderRequestHTTP>.Create(Self);
   Result := FKrakenProviderSettings;
+
+  //Params.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
 end;
 
 procedure TKrakenProviderRequestHTTP.StartTransaction;

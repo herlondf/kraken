@@ -1,0 +1,52 @@
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            69:47:94:2a:a4:52:54:c9:44:67:24:a1:aa:0a:a8:9f:8b:65:7e:47
+        Signature Algorithm: NULL
+        Issuer: CN = DESKTOP-UH7IHUE
+        Validity
+            Not Before: Dec 20 18:16:35 2021 GMT
+            Not After : Dec 20 18:16:35 2022 GMT
+        Subject: CN = DESKTOP-UH7IHUE
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:bd:f8:fc:c2:68:e0:a4:0d:db:fb:a7:32:cc:f3:
+                    ca:2c:b9:9a:90:ed:90:ff:e5:2b:99:59:e0:ce:a1:
+                    e2:2b:0b:f1:cc:46:e0:05:16:df:7a:fe:25:01:a9:
+                    9c:7f:e6:ee:61:35:3f:20:5e:c5:46:c3:c6:3b:ce:
+                    2e:e0:da:6d:97:f2:4b:bf:3c:8a:55:41:87:ea:d9:
+                    55:75:70:2a:7d:88:a5:13:18:c3:09:ad:29:fa:24:
+                    b6:89:ba:99:ac:87:8f:2a:d9:a1:ef:4f:2a:8d:ed:
+                    36:e4:89:66:1f:d1:6d:4b:a9:30:a6:86:e7:4d:7c:
+                    85:ac:2e:b4:88:31:35:2b:11:07:a0:f2:47:f0:1a:
+                    53:cf:79:4e:03:65:a3:52:35:48:b6:98:b7:ac:35:
+                    9f:67:d7:e2:8e:bc:1a:ad:36:5c:6b:42:7f:3a:03:
+                    72:18:d3:ab:6f:af:0b:28:36:e5:bd:ef:ec:39:f2:
+                    af:81:b3:2f:db:ca:29:6b:28:26:07:7c:49:cb:dd:
+                    8b:99:13:d2:9d:a6:13:06:27:0c:6b:f1:90:d2:e3:
+                    20:0d:2b:e4:1a:26:e3:0a:1e:1e:9a:e7:25:07:f8:
+                    57:4a:4f:e9:46:92:f2:25:22:62:ff:42:84:9b:0f:
+                    cf:60:cf:fd:8b:31:30:58:e6:fd:fb:0a:1a:bf:86:
+                    73:2d
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: NULL
+-----BEGIN CERTIFICATE-----
+MIICyzCCAbMCFGIBLVeWgruSUmy8RIqwPqF6gA3nMA0GCSqGSIb3DQEBCwUAMCox
+KDAmBgNVBAMMH3Bvc3RncmVzcWwudmlnZ29zaXN0ZW1hcy5jb20uYnIwHhcNMjEx
+MjIwMTgxNjM1WhcNMjIxMjIwMTgxNjM1WjAaMRgwFgYDVQQDDA9ERVNLVE9QLVVI
+N0lIVUUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC9+PzCaOCkDdv7
+pzLM88osuZqQ7ZD/5SuZWeDOoeIrC/HMRuAFFt96/iUBqZx/5u5hNT8gXsVGw8Y7
+zi7g2m2X8ku/PIpVQYfq2VV1cCp9iKUTGMMJrSn6JLaJupmsh48q2aHvTyqN7Tbk
+iWYf0W1LqTCmhudNfIWsLrSIMTUrEQeg8kfwGlPPeU4DZaNSNUi2mLesNZ9n1+KO
+vBqtNlxrQn86A3IY06tvrwsoNuW97+w58q+Bsy/byilrKCYHfEnL3YuZE9KdphMG
+Jwxr8ZDS4yANK+QaJuMKHh6a5yUH+FdKT+lGkvIlImL/QoSbD89gz/2LMTBY5v37
+Chq/hnMtAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAFqz3TnL2ZPw/5QDhihNNKBG
+CsaaRpzyngwVcYgWeyGNEcXGOxWO8W5cvq3uzthc7bW0YKr0cahSptjWkPWoSVEA
+JJj/OnczFlJVH8LlT+t9XzMqj/44gIOIfAASXwA3CbjM/d38tnT+6gFwQ2c5vjVS
+TpJklnioW0kgj/Yl3cA6D40h28j4jgYizl83h/bB3gWpUrEHDg2r7sY5zVc2g1rR
+GMYTFHMPa1zV1TyLCRfX+eSTr2MYASAeguDLjqJ0GAcO54pnFYH909nD1OPi29uo
+YDP/pmAPfUpunpZ4rSyyk1W/Sj+1CmQ2SfEWKlbGvdis741uFGnap7JhkQRWz3s=
+-----END CERTIFICATE-----

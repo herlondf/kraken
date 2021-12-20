@@ -17,7 +17,7 @@ uses
 
   Kraken.Log,
   Kraken.Consts,
-  Kraken.Provider.Zeos.Settings,
+  Kraken.Provider.Settings,
   Kraken.Provider.Zeos.Query,
   Kraken.Provider.Types;
 
@@ -30,7 +30,8 @@ type
   private
     FId                    : String;
     FKrakenQuerys          : TKrakenQuerys;
-    FKrakenProviderSettings: TKrakenProviderZeosSettings;
+    FKrakenProviderSettings: TKrakenProviderSettings<TKrakenProviderZeos>;
+    FKrakenProviderTypes   : TKrakenProviderTypes<TKrakenProviderZeos>;
 
     LIdTCPClient: TIdTCPClient;
 
@@ -39,12 +40,12 @@ type
     procedure _SetDefaultConfig;
     function GetDeviceName : String;
 
-    ///<summary>Connectivity test with TIdTCPClient</summary>
     function ConnectionInternalTest: Boolean;
   public
     function GetInstance: TZConnection;
-    function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
-    function Settings: TKrakenProviderZeosSettings;
+
+    function ProviderType: TKrakenProviderTypes<TKrakenProviderZeos>;
+    function Settings: TKrakenProviderSettings<TKrakenProviderZeos>;
 
     function Id(const Value: String): TKrakenProviderZeos; overload;
     function Id: String; overload;
@@ -81,6 +82,9 @@ begin
   if FKrakenProviderSettings <> nil then
     FreeAndNil(FKrakenProviderSettings);
 
+  if FKrakenProviderTypes <> nil then
+    FreeAndNil(FKrakenProviderTypes);
+
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
 
@@ -114,6 +118,7 @@ procedure TKrakenProviderZeos._SetDefaultConfig;
 begin
   GetInstance.AutoCommit := False;
   GetInstance.Properties.Values['codepage'] := 'utf-8';
+  GetInstance.Properties.Values['application_name'] := Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName( ParamStr( 0 ) ) ) -1 ); //+ '-' + id + '-' + GetDeviceName;
   GetInstance.TransactIsolationLevel := tiNone;
 end;
 
@@ -122,30 +127,21 @@ begin
   Result := TZConnection(Self);
 end;
 
-function TKrakenProviderZeos.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
+function TKrakenProviderZeos.ProviderType: TKrakenProviderTypes<TKrakenProviderZeos>;
 begin
-  Result := Self;
-  {$IFNDEF KRAKEN_FIREDAC}
-  case AProviderType of
-    ptPostgres: TKrakenProviderTypes.Postgres(Self);
-    ptFirebird: TKrakenProviderTypes.Firebird(Self);
-  end;
-  {$ENDIF}
+  if not Assigned(FKrakenProviderTypes) then
+    FKrakenProviderTypes := TKrakenProviderTypes<TKrakenProviderZeos>.Create(Self);
+  Result := FKrakenProviderTypes;
 end;
 
-function TKrakenProviderZeos.Settings: TKrakenProviderZeosSettings;
+function TKrakenProviderZeos.Settings: TKrakenProviderSettings<TKrakenProviderZeos>;
 begin
   if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderZeosSettings.Create(Self);
-
-  Properties.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
-
+    FKrakenProviderSettings := TKrakenProviderSettings<TKrakenProviderZeos>.Create(Self);
   Result := FKrakenProviderSettings;
 end;
 
-function TKrakenProviderZeos.GetDeviceName : String;
-var ipbuffer : string;
-      nsize : dword;
+function TKrakenProviderZeos.GetDeviceName : String; var ipbuffer : string; nsize : dword;
 begin
    nsize := 255;
    SetLength(ipbuffer,nsize);

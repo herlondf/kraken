@@ -1,0 +1,4 @@
+[2021-12-20 14:37:35] ERROR - [FireDAC][Phys][PG][libpq] connection requires a valid client certificate
+FATAL:  no pg_hba.conf entry for host "127.0.0.1", user "dev", database "casasertanejo", SSL off
+[2021-12-20 14:39:44] ERROR - SQL Error: could not read certificate file "C:\Projetos\Builder\Bin\git\mingw64\bin\_client.crt": Input/output error
+[2021-12-20 15:11:57] ERROR - SQL Error: certificate present, but not private key file "C:\Projetos-Brave\Kraken\sample\SSL\bin\Win32\Debug\SSL\_client.key"

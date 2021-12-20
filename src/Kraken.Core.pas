@@ -13,49 +13,29 @@ uses
   Kraken.Provider.Query;
 
 type
-  TLocateOption        = Kraken.Types.TLocateOption;
-  TKrakenProvider      = Kraken.Provider.TKrakenProvider;
-  TKrakenProviders     = TObjectList<TKrakenProvider>;
-  TKrakenProviderQuery = Kraken.Provider.Query.TKrakenProviderQuery;
-  TKrakenProviderType  = Kraken.Consts.TKrakenProviderType;
-
   TKrakenCore = class
   private
-    FProviders: TKrakenProviders;
-
-    class function Builder: TKrakenCore;
+    FProviders: TObjectList<TKrakenProvider>;
   protected
-
-  public
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
+  public
+    class function Invoker: TKrakenCore;
 
-    function Providers: TKrakenProviders;
-
-    function Provider(const AId: Integer ): TKrakenProvider; overload;
-    function Provider(const AId: String  = ''): TKrakenProvider; overload;
+    function TryGetProvider( const AId: Integer     ): TKrakenProvider; overload;
+    function TryGetProvider( const AId: String = '' ): TKrakenProvider; overload;
   end;
-
-  function TKraken: TKrakenCore;
 
 implementation
 
 var
-  FInstnace: TKrakenCore;
-
-function TKraken: TKrakenCore;
-begin
-  if not Assigned(FInstnace) then
-    FInstnace := TKrakenCore.Builder;
-
-  Result := FInstnace;
-end;
+  FInstance: TKrakenCore;
 
 { TKrakenCore }
 
 procedure TKrakenCore.AfterConstruction;
 begin
-  FProviders := TKrakenProviders.Create;
+  FProviders := TObjectList<TKrakenProvider>.Create;
 end;
 
 procedure TKrakenCore.BeforeDestruction;
@@ -63,12 +43,20 @@ begin
   FreeAndNil(FProviders);
 end;
 
-class function TKrakenCore.Builder: TKrakenCore;
+class function TKrakenCore.Invoker: TKrakenCore;
 begin
-  Result := TKrakenCore.Create;
+  if not Assigned(FInstance) then
+    FInstance := TKrakenCore.Create;
+
+  Result := FInstance;
 end;
 
-function TKrakenCore.Provider(const AId: String): TKrakenProvider;
+function TKrakenCore.TryGetProvider(const AId: Integer): TKrakenProvider;
+begin
+  Result := TryGetProvider( IntToStr( AId ) );
+end;
+
+function TKrakenCore.TryGetProvider(const AId: String): TKrakenProvider;
 var
   LProvider: TKrakenProvider;
 begin
@@ -91,20 +79,10 @@ begin
   end;
 end;
 
-function TKrakenCore.Provider(const AId: Integer): TKrakenProvider;
-begin
-  Result := Provider( IntToStr(AId) );
-end;
-
-function TKrakenCore.Providers: TKrakenProviders;
-begin
-  Result := FProviders;
-end;
-
 initialization
 
 finalization
-  if Assigned(FInstnace) then
-    FInstnace.DisposeOf;
+  if Assigned( FInstance ) then
+    FreeAndNil( FInstance );
 
 end.
