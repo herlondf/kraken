@@ -3,7 +3,7 @@ unit Kraken.Consts;
 interface
 
 type
-  TKrakenProviderType = (ptPostgres, ptFirebird);
+  TKrakenProviderType = (ptPostgres, ptFirebird, ptSqlite);
 
   { Structure Consts }
   const CREATE_SCHEMA       = ' CREATE SCHEMA ';

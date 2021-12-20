@@ -28,8 +28,11 @@ uses
   FireDAC.Comp.BatchMove.SQL,
   FireDAC.DatS,
 
+  IdTCPClient,
+
+  Kraken.Log,
   Kraken.Consts,
-  Kraken.Provider.Firedac.Settings,
+  Kraken.Provider.Settings,
   Kraken.Provider.Firedac.Query,
   Kraken.Provider.Types,
   Kraken.Provider.Firedac.Metadata;
@@ -41,25 +44,30 @@ type
   TKrakenProviderFiredac = class(TFDConnection)
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  strict private
-    FDriver: TFDPhysDriverLink;
   private
     FId                    : String;
     FKrakenQuerys          : TKrakenQuerys;
     FKrakenMetadatas       : TKrakenMetas;
-    FKrakenProviderSettings: TKrakenProviderFiredacSettings;
+    FKrakenProviderSettings: TKrakenProviderSettings<TKrakenProviderFiredac>;
+    FKrakenProviderTypes   : TKrakenProviderTypes<TKrakenProviderFiredac>;
+
+    LIdTCPClient: TIdTCPClient;
 
     procedure _SetDefaultConfig;
     function GetDeviceName : String;
+
+    ///<summary>Connectivity test with TIdTCPClient</summary>
+    function ConnectionInternalTest: Boolean;
   public
     function GetInstance: TFDConnection;
-    function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
-    function Settings: TKrakenProviderFiredacSettings;
+
+    function ProviderType: TKrakenProviderTypes<TKrakenProviderFiredac>;
+    function Settings: TKrakenProviderSettings<TKrakenProviderFiredac>;
 
     function Id(const Value: String): TKrakenProviderFiredac; overload;
     function Id: String; overload;
 
-    procedure Connect;
+    function  Connect: Boolean;
     procedure Disconnect;
     procedure StartTransaction;
     procedure Commit;
@@ -85,6 +93,8 @@ begin
 
   _SetDefaultConfig;
 
+  LIdTCPClient := TIdTCPClient.Create(Self);
+
   FKrakenQuerys := TKrakenQuerys.Create();
   FKrakenMetadatas := TKrakenMetas.Create();
 end;
@@ -94,14 +104,14 @@ begin
   if FKrakenProviderSettings <> nil then
     FreeAndNil(FKrakenProviderSettings);
 
+  if FKrakenProviderTypes <> nil then
+    FreeAndNil(FKrakenProviderTypes);
+
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
 
-  if FDriver <> nil then
-    FreeAndNil(FDriver);
-
-  if FKrakenMetadatas <> nil then
-    FreeAndNil(FKrakenMetadatas);
+  if Assigned(LIdTCPClient) then
+    FreeAndNil(LIdTCPClient);
 
   inherited;
 end;
@@ -129,26 +139,20 @@ begin
   Result := TFDConnection(Self);
 end;
 
-function TKrakenProviderFiredac.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
+function TKrakenProviderFiredac.ProviderType: TKrakenProviderTypes<TKrakenProviderFiredac>;
 begin
-  Result := Self;
-  {$IF DEFINED (KRAKEN_FIREDAC)}
-  case AProviderType of
-    ptPostgres: TKrakenProviderTypes.Postgres(Self, FDriver);
-    ptFirebird: TKrakenProviderTypes.Firebird(Self, FDriver);
-  end;
-  {$ENDIF}
+  if not Assigned(FKrakenProviderTypes) then
+    FKrakenProviderTypes := TKrakenProviderTypes<TKrakenProviderFiredac>.Create(Self);
+  Result := FKrakenProviderTypes;
 end;
 
-function TKrakenProviderFiredac.Settings: TKrakenProviderFiredacSettings;
+function TKrakenProviderFiredac.Settings: TKrakenProviderSettings<TKrakenProviderFiredac>;
 begin
   if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderFiredacSettings.Create(Self);
-
-  Params.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
-  //Properties.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
-
+    FKrakenProviderSettings := TKrakenProviderSettings<TKrakenProviderFiredac>.Create(Self);
   Result := FKrakenProviderSettings;
+
+  //Params.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
 end;
 
 function TKrakenProviderFiredac.GetDeviceName : String;
@@ -173,13 +177,46 @@ begin
   Self.Name := 'FDConn' + FId;
 end;
 
-procedure TKrakenProviderFiredac.Connect;
+function TKrakenProviderFiredac.Connect: Boolean;
 begin
+  Result := False;
   try
-    if not Connected then
-      GetInstance.Connected := True;
+    try
+      if ( not Connected ) and ( ConnectionInternalTest ) then
+        GetInstance.Connected := True;
+    finally
+      Result := True;
+    end;
   except
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
+  end;
+end;
 
+function TKrakenProviderFiredac.ConnectionInternalTest: Boolean;
+begin
+  Result := LIdTCPClient.Connected;
+
+  if LIdTCPClient.Connected then Exit;
+
+  try
+    try
+      LIdTCPClient.Host           := Settings.Host;
+      LIdTCPClient.Port           := Settings.Port;
+      LIdTCPClient.ConnectTimeout := Settings.TimeOut;
+      LIdTCPClient.Connect;
+    finally
+      Result := LIdTCPClient.Connected;
+    end;
+  except
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
@@ -188,34 +225,95 @@ begin
   try
     GetInstance.Close;
   except
-
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 procedure TKrakenProviderFiredac.StartTransaction;
+var
+  LSQL: string;
 begin
   try
-    GetInstance.StartTransaction;
+    if GetInstance.TxOptions.AutoCommit then
+    begin
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
+    end
+    else
+    begin
+      LSQL := Query.SQL.Text;
+      Query.SQL.Text := 'BEGIN';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
+    end;
   except
-
+    on e: exception do
+    begin
+      Rollback;
+      if LSQL <> '' then Query.SQL.Text := LSQL;
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 procedure TKrakenProviderFiredac.Commit;
+var
+  LSQL: String;
 begin
   try
-    GetInstance.Commit;
+    if GetInstance.TxOptions.AutoCommit then
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Commit
+    end
+    else
+    begin
+      LSQL := Query.SQL.Text;
+      Query.SQL.Text := 'COMMIT';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
+    end;
   except
-
+    on e: exception do
+    begin
+      Rollback;
+      if LSQL <> '' then Query.SQL.Text := LSQL;
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 procedure TKrakenProviderFiredac.Rollback;
+var
+  LSQL: String;
 begin
   try
-    GetInstance.Rollback;
-  except
+    if GetInstance.TxOptions.AutoCommit then
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Rollback
+    end
+    else
+    begin
+      LSQL := Query.SQL.Text;
+      Query.SQL.Text := 'ROLLBACK';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
+    end;
 
+  except
+    on e: exception do
+    begin
+      if LSQL <> '' then Query.SQL.Text := LSQL;
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 

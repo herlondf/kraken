@@ -6,6 +6,9 @@ uses
   System.Classes,
   System.SysUtils,
 
+  Kraken.Log,
+
+  Data.DB,
   ZDataset,
   ZConnection;
 
@@ -14,6 +17,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   private
+    FOwner     : TComponent;
     FId        : String;
   public
     function  GetInstance: TZQuery;
@@ -21,28 +25,27 @@ type
     function  Id(const Value: String): TKrakenProviderZeosQuery; overload;
     function  Id: String; overload;
 
-    function  StartTransaction: Boolean; overload;
-    function  StartTransaction(const Value: Boolean): TKrakenProviderZeosQuery; overload;
+    function  SaveQuery: String;
 
-    function  SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderZeosQuery; overload;
-    function  SaveQuery: String; overload;
+    procedure Open(ASQL: String; ALog: Boolean = false); overload;
+    procedure Open(ALog: Boolean = false); overload;
 
-    procedure Open(ASQL: String); overload;
-    procedure Open; overload;
-
-    procedure ExecSQL;
+    procedure ExecSQL(ALog: Boolean = false);
 
     procedure Clear;
   end;
 
 implementation
 
+uses
+  Kraken.Provider.Zeos;
+
 { TKrakenProviderZeosQuery }
 
 constructor TKrakenProviderZeosQuery.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
-
+  FOwner := AOwner;
   GetInstance.Connection := TZConnection(AOwner);
 end;
 
@@ -71,87 +74,64 @@ end;
 
 function TKrakenProviderZeosQuery.SaveQuery: String;
 var
-  I       : Integer;
-  LParams : TStringList;
+  I            : Integer;
+  LParams      : TStringList;
+  LRecordCount : String;
+  LQuery       : string;
 begin
   Result := '';
-  {$IFDEF DEBUG}
-  LParams := TStringLIst.Create;
-
-  for I := 0 to Pred( Params.Count ) do
-    LParams.AddPair( '- ' + Params[I].Name, Params[I].Value );
-
-  Result := Result + 'Params: ' + LParams.Text + sLineBreak;
-  Result := Result + SQL.GetText;
-
-  LParams.Free;
-  {$ENDIF}
-end;
-
-function TKrakenProviderZeosQuery.StartTransaction(const Value: Boolean): TKrakenProviderZeosQuery;
-begin
-  Result := Self;
-end;
-
-function TKrakenProviderZeosQuery.StartTransaction: Boolean;
-begin
-
-end;
-
-function TKrakenProviderZeosQuery.SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderZeosQuery;
-var
-  I               : Integer;
-  LArqFile        : TextFile;
-  LRecordCount    : String;
-  LParams         : TStringList;
-  LFilename       : String;
-begin
-  Result := Self;
-  {$IFDEF DEBUG}
-  if not DirectoryExists( aPath ) then
-    ForceDirectories( aPath );
-
-  if AFilename <> '' then
-    LFilename := Format( '%s-%s.log' , [ AFilename, FormatDateTime('yyyy-mm-dd_hh-nn-ss', Now) ] )
-  else
-    LFilename := Format( 'Log-%s.log', [ FormatDateTime('yyyy-mm-dd_hh-nn-ss', Now) ] );
-
-
-  AssignFile( LArqFile, aPath + '\' + LFilename );
 
   LParams := TStringLIst.Create;
+  LQuery  := SQL.GetText;
 
   for I := 0 to Pred( Params.Count ) do
-    LParams.AddPair( '- ' + Params[I].Name, Params[I].Value );
+  begin
+    if Params[I].IsNull then
+      Params[I].Clear
+    else
+    if Params[I].DataType in [ftString, ftDate, ftTime, ftDateTime, ftWideString] then
+      LQuery := StringReplace( LQuery, ':'+Params[I].Name, '''' + Params[I].AsString, [rfIgnoreCase] )
+    else
+      LQuery := StringReplace( LQuery, ':'+Params[I].Name, Params[I].AsString, [rfIgnoreCase] );
+
+    LParams.AddPair( '- ' + Params[I].Name, Params[I].AsString );
+  end;
 
   try
-    LRecordCount := IntToStr( RecordCount );
+    if Self.Active then
+      LRecordCount := IntToStr( RecordCount )
+    else
+      LRecordCount := '-';
   except
     LRecordCount := '0';
   end;
 
-  try
-    Rewrite( LArqFile                                                            );
-    WriteLN( LArqFile, '/*-----------------------------------------------'       );
-    WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, 'Data..: ' + FormatDateTime( 'dd/mm/yyyy', Now ) + ' '
-                                     + FormatDateTime( 'hh:mm:ss  ', Now )       );
-    WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, 'Registros.: ' + LRecordCount                             );
-    WriteLN( LArqFile, 'Parametros:'                                             );
-    WriteLN( LArqFile, LParams.Text                                              );
-    WriteLN( LArqFile, '-----------------------------------------------*/'       );
-    WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, SQL.GetText                                               );
-  finally
-    CloseFile( LArqFile );
-    LParams.Free;
-  end;
-  {$ENDIF}
+  Result := Format(
+      ''                                                   + sLineBreak +
+      '/*-----------------------------------------------'  + sLineBreak +
+      'Data......: %s as %s '                              + sLineBreak +
+      'Registros.: %s '                                    + sLineBreak +
+      'Parametros: %s '                                    + sLineBreak +
+      '/*-----------------------------------------------'  + sLineBreak +
+      ''                                                   + sLineBreak +
+      '%s'
+    ,
+    [
+      FormatDateTime( 'dd/mm/yyyy', Now ),
+      FormatDateTime( 'hh:mm:ss  ', Now ),
+      LRecordCount,
+      LParams.Text,
+      LQuery
+    ]
+  );
+
+  LParams.Free;
 end;
 
-procedure TKrakenProviderZeosQuery.Open(ASQL: String);
+procedure TKrakenProviderZeosQuery.Open(ASQL: String; ALog: Boolean = false);
 begin
+  if ALog then KrakenLOG.Trace( SaveQuery );
+
   try
     if not GetInstance.Prepared then
     GetInstance.Prepare;
@@ -160,37 +140,47 @@ begin
     GetInstance.SQL.Add(ASQL);
     GetInstance.Active := True;
   except
-		if TZConnection( GetInstance.Connection ).InTransaction then
-      TZConnection( GetInstance.Connection ).Rollback;
-
-    raise;
+    on e: Exception do
+    begin
+      KrakenLOG.Fatal( SaveQuery );
+      TKrakenProviderZeos(FOwner).Rollback;
+      raise;
+    end;
   end;
 end;
 
-procedure TKrakenProviderZeosQuery.Open;
+procedure TKrakenProviderZeosQuery.Open(ALog: Boolean = false);
 begin
+  if ALog then KrakenLOG.Trace( SaveQuery );
+
   try
     if not GetInstance.Prepared then
-    GetInstance.Prepare;
+      GetInstance.Prepare;
 
     GetInstance.Active := True;
   except
-		if TZConnection( GetInstance.Connection ).InTransaction then
-      TZConnection( GetInstance.Connection ).Rollback;
-
-    raise;
+    on e: Exception do
+    begin
+      KrakenLOG.Fatal( SaveQuery );
+      TKrakenProviderZeos(FOwner).Rollback;
+      raise;
+    end;
   end;
 end;
 
-procedure TKrakenProviderZeosQuery.ExecSQL;
+procedure TKrakenProviderZeosQuery.ExecSQL(ALog: Boolean = false);
 begin
+  if ALog then KrakenLOG.Trace( SaveQuery );
+
   try
     GetInstance.ExecSQL;
   except
-		if TZConnection( GetInstance.Connection ).InTransaction then
-      TZConnection( GetInstance.Connection ).Rollback;
-
-    raise;
+    on e: Exception do
+    begin
+      KrakenLOG.Fatal( SaveQuery );
+		  TKrakenProviderZeos(FOwner).Rollback;
+      raise;
+    end;
   end;
 end;
 

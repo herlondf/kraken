@@ -5,14 +5,19 @@ interface
 uses
   System.Classes,
   System.SysUtils,
-  System.Generics.Collections, ShellApi ,Winapi.Windows,
+  System.Generics.Collections,
+  ShellApi,
+  Winapi.Windows,
 
   ZConnection,
   ZAbstractConnection,
   ZDbcIntfs,
 
+  IdTCPClient,
+
+  Kraken.Log,
   Kraken.Consts,
-  Kraken.Provider.Zeos.Settings,
+  Kraken.Provider.Settings,
   Kraken.Provider.Zeos.Query,
   Kraken.Provider.Types;
 
@@ -25,19 +30,27 @@ type
   private
     FId                    : String;
     FKrakenQuerys          : TKrakenQuerys;
-    FKrakenProviderSettings: TKrakenProviderZeosSettings;
+    FKrakenProviderSettings: TKrakenProviderSettings<TKrakenProviderZeos>;
+    FKrakenProviderTypes   : TKrakenProviderTypes<TKrakenProviderZeos>;
+
+    LIdTCPClient: TIdTCPClient;
+
+    procedure IdTCPClientDisconnected(Sender: TObject);
 
     procedure _SetDefaultConfig;
     function GetDeviceName : String;
+
+    function ConnectionInternalTest: Boolean;
   public
     function GetInstance: TZConnection;
-    function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
-    function Settings: TKrakenProviderZeosSettings;
+
+    function ProviderType: TKrakenProviderTypes<TKrakenProviderZeos>;
+    function Settings: TKrakenProviderSettings<TKrakenProviderZeos>;
 
     function Id(const Value: String): TKrakenProviderZeos; overload;
     function Id: String; overload;
 
-    procedure Connect;
+    function  Connect: Boolean;
     procedure Disconnect;
     procedure StartTransaction;
     procedure Commit;
@@ -57,6 +70,8 @@ constructor TKrakenProviderZeos.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  LIdTCPClient := TIdTCPClient.Create(Self);
+
   _SetDefaultConfig;
 
   FKrakenQuerys := TKrakenQuerys.Create();
@@ -67,17 +82,44 @@ begin
   if FKrakenProviderSettings <> nil then
     FreeAndNil(FKrakenProviderSettings);
 
+  if FKrakenProviderTypes <> nil then
+    FreeAndNil(FKrakenProviderTypes);
+
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
 
+  if Assigned(LIdTCPClient) then
+    FreeAndNil(LIdTCPClient);
+
   inherited;
+end;
+
+//Falta testar
+procedure TKrakenProviderZeos.IdTCPClientDisconnected(Sender: TObject);
+begin
+  try
+    try
+      GetInstance.Disconnect;
+
+      while not GetInstance.Connected do
+      begin
+        GetInstance.Connected := True;
+        Sleep(10000);
+      end;
+    finally
+
+    end;
+  except
+
+  end;
 end;
 
 procedure TKrakenProviderZeos._SetDefaultConfig;
 begin
   GetInstance.AutoCommit := False;
   GetInstance.Properties.Values['codepage'] := 'utf-8';
-  GetInstance.TransactIsolationLevel := tiReadUncommitted;
+  GetInstance.Properties.Values['application_name'] := Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName( ParamStr( 0 ) ) ) -1 ); //+ '-' + id + '-' + GetDeviceName;
+  GetInstance.TransactIsolationLevel := tiNone;
 end;
 
 function TKrakenProviderZeos.GetInstance: TZConnection;
@@ -85,30 +127,21 @@ begin
   Result := TZConnection(Self);
 end;
 
-function TKrakenProviderZeos.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderZeos;
+function TKrakenProviderZeos.ProviderType: TKrakenProviderTypes<TKrakenProviderZeos>;
 begin
-  Result := Self;
-  {$IFNDEF KRAKEN_FIREDAC}
-  case AProviderType of
-    ptPostgres: TKrakenProviderTypes.Postgres(Self);
-    ptFirebird: TKrakenProviderTypes.Firebird(Self);
-  end;
-  {$ENDIF}
+  if not Assigned(FKrakenProviderTypes) then
+    FKrakenProviderTypes := TKrakenProviderTypes<TKrakenProviderZeos>.Create(Self);
+  Result := FKrakenProviderTypes;
 end;
 
-function TKrakenProviderZeos.Settings: TKrakenProviderZeosSettings;
+function TKrakenProviderZeos.Settings: TKrakenProviderSettings<TKrakenProviderZeos>;
 begin
   if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderZeosSettings.Create(Self);
-
-  Properties.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
-
+    FKrakenProviderSettings := TKrakenProviderSettings<TKrakenProviderZeos>.Create(Self);
   Result := FKrakenProviderSettings;
 end;
 
-function TKrakenProviderZeos.GetDeviceName : String;
-var ipbuffer : string;
-      nsize : dword;
+function TKrakenProviderZeos.GetDeviceName : String; var ipbuffer : string; nsize : dword;
 begin
    nsize := 255;
    SetLength(ipbuffer,nsize);
@@ -128,13 +161,46 @@ begin
   Self.Name := 'ZConn' + FId;
 end;
 
-procedure TKrakenProviderZeos.Connect;
+function TKrakenProviderZeos.Connect: Boolean;
 begin
+  Result := False;
   try
-    if not Connected then
-      GetInstance.Connect;
+    try
+      if ( not Connected ) and ( ConnectionInternalTest ) then
+        GetInstance.Connect;
+    finally
+      Result := True;
+    end;
   except
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
+  end;
+end;
 
+function TKrakenProviderZeos.ConnectionInternalTest: Boolean;
+begin
+  Result := LIdTCPClient.Connected;
+
+  if LIdTCPClient.Connected then Exit;
+
+  try
+    try
+      LIdTCPClient.Host           := Settings.Host;
+      LIdTCPClient.Port           := Settings.Port;
+      LIdTCPClient.ConnectTimeout := Settings.TimeOut;
+      LIdTCPClient.Connect;
+    finally
+      Result := LIdTCPClient.Connected;
+    end;
+  except
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
@@ -143,36 +209,95 @@ begin
   try
     GetInstance.Disconnect;
   except
-
+    on e: exception do
+    begin
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 procedure TKrakenProviderZeos.StartTransaction;
+var
+  LSQL: string;
 begin
   try
-    if GetInstance.InTransaction then
-      GetInstance.StartTransaction;
+    if GetInstance.AutoCommit then
+    begin
+      if not GetInstance.InTransaction then
+        GetInstance.StartTransaction
+    end
+    else
+    begin
+      LSQL := Query.SQL.Text;
+      Query.SQL.Text := 'BEGIN';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
+    end;
   except
-
+    on e: exception do
+    begin
+      Rollback;
+      if LSQL <> '' then Query.SQL.Text := LSQL;
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 procedure TKrakenProviderZeos.Commit;
+var
+  LSQL: String;
 begin
   try
-    if GetInstance.InTransaction then
-      GetInstance.Commit;
+    if GetInstance.AutoCommit then
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Commit
+    end
+    else
+    begin
+      LSQL := Query.SQL.Text;
+      Query.SQL.Text := 'COMMIT';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
+    end;
   except
-
+    on e: exception do
+    begin
+      Rollback;
+      if LSQL <> '' then Query.SQL.Text := LSQL;
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 
 procedure TKrakenProviderZeos.Rollback;
+var
+  LSQL: String;
 begin
   try
-    GetInstance.Rollback;
-  except
+    if GetInstance.AutoCommit then
+    begin
+      if GetInstance.InTransaction then
+        GetInstance.Rollback
+    end
+    else
+    begin
+      LSQL := Query.SQL.Text;
+      Query.SQL.Text := 'ROLLBACK';
+      Query.ExecSQL;
+      Query.SQL.Text := LSQL;
+    end;
 
+  except
+    on e: exception do
+    begin
+      if LSQL <> '' then Query.SQL.Text := LSQL;
+      KrakenLOG.Error(E.Message);
+      raise;
+    end;
   end;
 end;
 

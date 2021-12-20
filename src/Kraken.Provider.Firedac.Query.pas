@@ -6,6 +6,8 @@ uses
   System.SysUtils,
   System.Classes,
 
+  Kraken.Log,
+
   FireDAC.Comp.Client,
   FireDAC.Stan.Intf,
   FireDAC.Stan.Def,
@@ -19,33 +21,35 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   private
+    FOwner     : TComponent;
     FId        : String;
-    FConnection: TFDConnection;
   public
     function  GetInstance: TFDQuery;
 
     function  Id(const Value: String): TKrakenProviderFiredacQuery; overload;
     function  Id: String; overload;
 
-    function  SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderFiredacQuery; overload;
-    function  SaveQuery: String; overload;
+    function  SaveQuery: String;
 
-    procedure Open(ASQL: String); overload;
-    procedure Open; overload;
+    procedure Open(ASQL: String; ALog: Boolean = false); overload;
+    procedure Open(ALog: Boolean = false); overload;
 		
-		procedure ExecSQL; overload;
+		procedure ExecSQL(ALog: Boolean = false);
 
     procedure Clear;
   end;
 
 implementation
 
+uses
+  Kraken.Provider.Firedac;
+
 { TKrakenProviderFiredacQuery }
 
 constructor TKrakenProviderFiredacQuery.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
-
+  FOwner := AOwner;
   GetInstance.Connection := TFDConnection(AOwner);
 end;
 
@@ -74,108 +78,105 @@ end;
 
 function TKrakenProviderFiredacQuery.SaveQuery: String;
 var
-  I       : Integer;
-  LParams : TStringList;
+  I            : Integer;
+  LParams      : TStringList;
+  LRecordCount : String;
+  LQuery       : string;
 begin
   Result := '';
-  {$IFDEF DEBUG}
+
   LParams := TStringLIst.Create;
+  LQuery  := SQL.GetText;
 
   for I := 0 to Pred( Params.Count ) do
+  begin
     LParams.AddPair( '- ' + Params[I].Name, Params[I].AsString );
 
-  Result := Result + 'Params: ' + LParams.Text + sLineBreak;
-  Result := Result + SQL.GetText;
-
-  LParams.Free;
-  {$ENDIF}
-end;
-
-function TKrakenProviderFiredacQuery.SaveQuery(aPath: String; AFilename: String = ''): TKrakenProviderFiredacQuery;
-var
-  I               : Integer;
-  LArqFile        : TextFile;
-  LRecordCount    : String;
-  LParams         : TStringList;
-  LFilename       : String;
-begin
-  Result := Self;
-  {$IFDEF DEBUG}
-  if not DirectoryExists( aPath ) then
-    ForceDirectories( aPath );
-
-  if AFilename <> '' then
-    LFilename := Format( '%s-%s.log' , [ AFilename, FormatDateTime('yyyy-mm-dd_hh-nn-ss', Now) ] )
-  else
-    LFilename := Format( 'Log-%s.log', [ FormatDateTime('yyyy-mm-dd_hh-nn-ss', Now) ] );
-
-  AssignFile( LArqFile, aPath + '\' + LFilename );
-
-  LParams := TStringLIst.Create;
-
-  for I := 0 to Pred( Params.Count ) do
-    LParams.AddPair( '- ' + Params[I].Name, Params[I].Value );
+    StringReplace( LQuery, ':'+Params[I].Name, Params[I].AsString + '{' + Params[I].Name + '}', [rfReplaceAll, rfIgnoreCase] );
+  end;
 
   try
-    LRecordCount := IntToStr( RecordCount );
+    if Self.Active then
+      LRecordCount := IntToStr( RecordCount )
+    else
+      LRecordCount := '-';
   except
     LRecordCount := '0';
   end;
 
-  try
-    Rewrite( LArqFile                                                            );
-    WriteLN( LArqFile, '/*-----------------------------------------------'       );
-    WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, 'Data..: ' + FormatDateTime( 'dd/mm/yyyy', Now ) + ' '
-                                     + FormatDateTime( 'hh:mm:ss  ', Now )       );
-    WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, 'Registros.: ' + LRecordCount                             );
-    WriteLN( LArqFile, 'Parametros:'                                             );
-    WriteLN( LArqFile, LParams.Text                                              );
-    WriteLN( LArqFile, '-----------------------------------------------*/'       );
-    WriteLN( LArqFile, ''                                                        );
-    WriteLN( LArqFile, SQL.GetText                                               );
-  finally
-    CloseFile( LArqFile );
-    LParams.Free;
-  end;
-  {$ENDIF}
+  Result := Format(
+      ''                                                   + sLineBreak +
+      '/*-----------------------------------------------'  + sLineBreak +
+      'Data......: %s as %s '                              + sLineBreak +
+      'Registros.: %s '                                    + sLineBreak +
+      'Parametros: %s '                                    + sLineBreak +
+      '/*-----------------------------------------------'  + sLineBreak +
+      ''                                                   + sLineBreak +
+      '%s'
+    ,
+    [
+      FormatDateTime( 'dd/mm/yyyy', Now ),
+      FormatDateTime( 'hh:mm:ss  ', Now ),
+      LRecordCount,
+      LParams.Text,
+      LQuery
+    ]
+  );
+
+  LParams.Free;
 end;
 
-procedure TKrakenProviderFiredacQuery.Open(ASQL: String);
+procedure TKrakenProviderFiredacQuery.Open(ASQL: String; ALog: Boolean = false);
 begin
+  if ALog then KrakenLOG.Trace( SaveQuery );
+
 	try
 		GetInstance.SQL.Clear;
 		GetInstance.SQL.Add(ASQL);
-		GetInstance.Prepare;
+    if not GetInstance.Prepared then
+		  GetInstance.Prepare;
 		GetInstance.Active := True;
 	except
-		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
-      TFDCustomConnection( GetInstance.Connection ).Rollback;
-    raise;
+    on e: Exception do
+    begin
+      KrakenLOG.Fatal( SaveQuery );
+      TKrakenProviderFiredac(FOwner).Rollback;
+      raise;
+    end;
 	end;
 end;
 
-procedure TKrakenProviderFiredacQuery.Open;
+procedure TKrakenProviderFiredacQuery.Open(ALog: Boolean = false);
 begin
+  if ALog then KrakenLOG.Trace( SaveQuery );
+
 	try
-		GetInstance.Prepare;
+    if not GetInstance.Prepared then
+		  GetInstance.Prepare;
 		GetInstance.Active := True;
 	except
-		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
-      TFDCustomConnection( GetInstance.Connection ).Rollback;
-    raise;
+    on e: Exception do
+    begin
+      KrakenLOG.Fatal( SaveQuery );
+		  TKrakenProviderFiredac(FOwner).Rollback;
+      raise;
+    end;
 	end;
 end;
 
-procedure TKrakenProviderFiredacQuery.ExecSQL;
+procedure TKrakenProviderFiredacQuery.ExecSQL(ALog: Boolean = false);
 begin
+  if ALog then KrakenLOG.Trace( SaveQuery );
+
   try
     GetInstance.ExecSQL;
   except
-		if TFDCustomConnection( GetInstance.Connection ).InTransaction then
-      TFDCustomConnection( GetInstance.Connection ).Rollback;
-    raise;
+    on e: Exception do
+    begin
+      KrakenLOG.Fatal( SaveQuery );
+		  TKrakenProviderFiredac(FOwner).Rollback;
+      raise;
+    end;
   end;
 end;
 
