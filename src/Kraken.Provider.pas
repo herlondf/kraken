@@ -9,10 +9,12 @@ uses
     {$IF DEFINED(KRAKEN_REQUESTHTTP)}
     Kraken.Provider.RequestHTTP;
     {$ELSE}
+    ZConnection,
+    ZAbstractConnection,
+    ZDbcIntfs,
     Kraken.Provider.Zeos;
   {$ENDIF}
 {$ENDIF}
-
 
 type
 {$IF DEFINED(KRAKEN_FIREDAC)}

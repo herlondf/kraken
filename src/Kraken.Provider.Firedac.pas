@@ -32,7 +32,7 @@ uses
 
   Kraken.Log,
   Kraken.Consts,
-  Kraken.Provider.Firedac.Settings,
+  Kraken.Provider.Settings,
   Kraken.Provider.Firedac.Query,
   Kraken.Provider.Types,
   Kraken.Provider.Firedac.Metadata;
@@ -44,13 +44,13 @@ type
   TKrakenProviderFiredac = class(TFDConnection)
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  strict private
-    FDriver: TFDPhysDriverLink;
   private
     FId                    : String;
     FKrakenQuerys          : TKrakenQuerys;
     FKrakenMetadatas       : TKrakenMetas;
-    FKrakenProviderSettings: TKrakenProviderFiredacSettings;
+    FKrakenProviderSettings: TKrakenProviderSettings<TKrakenProviderFiredac>;
+    FKrakenProviderTypes   : TKrakenProviderTypes<TKrakenProviderFiredac>;
+
     LIdTCPClient: TIdTCPClient;
 
     procedure _SetDefaultConfig;
@@ -60,8 +60,9 @@ type
     function ConnectionInternalTest: Boolean;
   public
     function GetInstance: TFDConnection;
-    function ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
-    function Settings: TKrakenProviderFiredacSettings;
+
+    function ProviderType: TKrakenProviderTypes<TKrakenProviderFiredac>;
+    function Settings: TKrakenProviderSettings<TKrakenProviderFiredac>;
 
     function Id(const Value: String): TKrakenProviderFiredac; overload;
     function Id: String; overload;
@@ -103,14 +104,11 @@ begin
   if FKrakenProviderSettings <> nil then
     FreeAndNil(FKrakenProviderSettings);
 
+  if FKrakenProviderTypes <> nil then
+    FreeAndNil(FKrakenProviderTypes);
+
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
-
-  if FDriver <> nil then
-    FreeAndNil(FDriver);
-
-  if FKrakenMetadatas <> nil then
-    FreeAndNil(FKrakenMetadatas);
 
   if Assigned(LIdTCPClient) then
     FreeAndNil(LIdTCPClient);
@@ -141,26 +139,20 @@ begin
   Result := TFDConnection(Self);
 end;
 
-function TKrakenProviderFiredac.ProviderType(AProviderType: TKrakenProviderType): TKrakenProviderFiredac;
+function TKrakenProviderFiredac.ProviderType: TKrakenProviderTypes<TKrakenProviderFiredac>;
 begin
-  Result := Self;
-  {$IF DEFINED (KRAKEN_FIREDAC)}
-  case AProviderType of
-    ptPostgres: TKrakenProviderTypes.Postgres(Self, FDriver);
-    ptFirebird: TKrakenProviderTypes.Firebird(Self, FDriver);
-    ptSqlite  : TKrakenProviderTypes.SQLite(Self, FDriver);
-  end;
-  {$ENDIF}
+  if not Assigned(FKrakenProviderTypes) then
+    FKrakenProviderTypes := TKrakenProviderTypes<TKrakenProviderFiredac>.Create(Self);
+  Result := FKrakenProviderTypes;
 end;
 
-function TKrakenProviderFiredac.Settings: TKrakenProviderFiredacSettings;
+function TKrakenProviderFiredac.Settings: TKrakenProviderSettings<TKrakenProviderFiredac>;
 begin
   if FKrakenProviderSettings = nil then
-    FKrakenProviderSettings := TKrakenProviderFiredacSettings.Create(Self);
-
-  Params.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
-
+    FKrakenProviderSettings := TKrakenProviderSettings<TKrakenProviderFiredac>.Create(Self);
   Result := FKrakenProviderSettings;
+
+  //Params.Add('application_name=' + Copy( ExtractFileName( ParamStr(0) ),  1, Pos('.', ExtractFileName(ParamStr(0)))-1) + '-' + id + '-' + GetDeviceName );
 end;
 
 function TKrakenProviderFiredac.GetDeviceName : String;

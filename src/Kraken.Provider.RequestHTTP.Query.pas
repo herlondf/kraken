@@ -8,19 +8,21 @@ uses
   System.Classes,
   System.SysUtils,
   System.Hash,
+  System.NetEncoding,
 
-  RESTRequest4D,
   REST.Types,
-  JsonParser.Helper,
   System.JSON,
+
+  {$IFDEF KRAKEN_HTTP}
+  RESTRequest4D,
+  Dataset.Serialize,
+  DataSet.Serialize.Config,
+  JsonParser.Helper
+  {$ENDIF}
 
   Kraken.Types,
   Kraken.Provider.Fields,
-  Kraken.Provider.Params,
-
-  Dataset.Serialize,
-  DataSet.Serialize.Config,
-  System.NetEncoding;
+  Kraken.Provider.Params;
 
 type
   TRequestCommand = (rcExecSQL, rcOpen);
@@ -151,7 +153,7 @@ begin
   FSQL     := TStringList.Create;
   //FDataset := TFDMemTable.Create(nil);
 
-  TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndUpper;
+  {$IFDEF KRAKEN_HTTP} TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndUpper; {$ENDIF}
 end;
 
 destructor TKrakenProviderRequestHTTPQuery.Destroy;
@@ -226,9 +228,12 @@ end;
 procedure TKrakenProviderRequestHTTPQuery.Request(ARequestCommand: TRequestCommand; AStartTransaction: Boolean);
 var
   LJSONObject : TJSONObject;
+  {$IFDEF KRAKEN_HTTP}
   LResponse   : IResponse;
+  {$ENDIF}
   Teste: String;
 begin
+  {$IFDEF KRAKEN_HTTP}
   try
     try
       LJSONObject := TJSONObject.Create;
@@ -278,6 +283,7 @@ begin
   except
     raise;
   end;
+  {$ENDIF}
 end;
 
 function TKrakenProviderRequestHTTPQuery.FieldByName(const AField: String): TKrakenProviderFields;
