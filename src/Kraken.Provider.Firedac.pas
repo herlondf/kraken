@@ -110,6 +110,9 @@ begin
   if FKrakenQuerys <> nil then
     FreeAndNil(FKrakenQuerys);
 
+  if FKrakenMetadatas <> nil then
+    FreeAndNil(FKrakenMetadatas);
+
   if Assigned(LIdTCPClient) then
     FreeAndNil(LIdTCPClient);
 

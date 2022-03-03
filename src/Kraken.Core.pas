@@ -21,6 +21,7 @@ type
     procedure BeforeDestruction; override;
   public
     class function Invoker: TKrakenCore;
+    class procedure Clear;
 
     function TryGetProvider( const AId: Integer     ): TKrakenProvider; overload;
     function TryGetProvider( const AId: String = '' ): TKrakenProvider; overload;
@@ -40,7 +41,13 @@ end;
 
 procedure TKrakenCore.BeforeDestruction;
 begin
+  FInstance := nil;
   FreeAndNil(FProviders);
+end;
+
+class procedure TKrakenCore.Clear;
+begin
+  Invoker.FProviders.Clear;
 end;
 
 class function TKrakenCore.Invoker: TKrakenCore;
