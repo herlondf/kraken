@@ -60,7 +60,10 @@ end;
 
 function TKrakenProviderTypes<T>.Postgres: T;
 begin
+  Result := FReturn;
+
   {$IF DEFINED(KRAKEN_FIREDAC)}
+  if Assigned(FDriver) then Exit;
   FDriver := TFDPhysPgDriverLink.Create(FConnection);
   TFDPhysPgDriverLink(FDriver).Name := 'PGDriver';
   TFDPhysPgDriverLink(FDriver).VendorLib := 'libpq.dll';
@@ -71,13 +74,14 @@ begin
   FConnection.TransactIsolationLevel := tiReadUncommitted;
   FConnection.AutoCommit := False;
   {$ENDIF}
-
-  Result := FReturn;
 end;
 
 function TKrakenProviderTypes<T>.Firebird: T;
 begin
+  Result := FReturn;
+
   {$IF DEFINED(KRAKEN_FIREDAC)}
+  if Assigned(FDriver) then Exit;
   FDriver := TFDPhysFBDriverLink.Create(FConnection);
   TFDPhysFBDriverLink(FDriver).Name := 'FBDriver';
   FConnection.DriverName := 'FB';
@@ -87,21 +91,20 @@ begin
   FConnection.TransactIsolationLevel := tiReadUncommitted;
   FConnection.AutoCommit := False;
   {$ENDIF}
-
-  Result := FReturn;
 end;
 
 function TKrakenProviderTypes<T>.SQLite: T;
 begin
+  Result := FReturn;
+
   {$IF DEFINED(KRAKEN_FIREDAC)}
+  if Assigned(FDriver) then Exit;
   FDriver := TFDPhysSQLiteDriverLink.Create(FConnection);
   TFDPhysSQLiteDriverLink(FDriver).Name := 'SQLite';
   FConnection.DriverName := 'SQLite';
   {$ELSE}
   raise Exception.Create('Driver not implemented.');
   {$ENDIF}
-
-  Result := FReturn;
 end;
 
 end.
