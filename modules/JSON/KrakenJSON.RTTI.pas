@@ -1,4 +1,4 @@
-unit Kraken.RTTI;
+unit KrakenJSON.RTTI;
 
 interface
 
@@ -6,8 +6,8 @@ uses
   System.Rtti,
   System.SysUtils,
   System.TypInfo,
-  Kraken.Config,
-  Kraken.Attributes;
+  KrakenJSON.Config,
+  KrakenJSON.Attributes;
 
 type
   IGBRTTI = interface

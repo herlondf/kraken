@@ -49,7 +49,7 @@ type
   end;
 
   function  ProductName: String;
-  function  KrakenLOG: TKrakenLog;
+  function  KrakenLog: TKrakenLog;
 
 var
   FInstance: TKrakenLog;
@@ -69,7 +69,7 @@ const
   PREFIX_ERROR = 'ERROR';
   PREFIX_FATAL = 'FATAL';
 
-function  KrakenLOG: TKrakenLog;
+function  KrakenLog: TKrakenLog;
 begin
   Result := FInstance;
 end;

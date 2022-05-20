@@ -1,12 +1,12 @@
-unit Kraken.Deserializer;
+unit KrakenJSON.Deserializer;
 
 interface
 
 uses
-  Kraken.Interfaces,
-  Kraken.Base,
-  Kraken.RTTI,
-  Kraken.DateTime.Helper,
+  KrakenJSON.Interfaces,
+  KrakenJSON.Base,
+  KrakenJSON.RTTI,
+  KrakenJSON.DateTime.Helper,
   System.Rtti,
   System.JSON,
   System.SysUtils,
@@ -44,7 +44,7 @@ implementation
 { TKrakenDeserializer }
 
 uses
-  Kraken.Helper;
+  KrakenJSON.Helper;
 
 constructor TKrakenDeserializer<T>.create(bUseIgnore: Boolean = True);
 begin

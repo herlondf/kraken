@@ -1,4 +1,4 @@
-unit Kraken.Attributes;
+unit KrakenJSON.Attributes;
 
 interface
 

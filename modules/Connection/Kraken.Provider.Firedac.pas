@@ -35,8 +35,7 @@ uses
   Kraken.Provider.Settings,
   Kraken.Provider.Firedac.Query,
   Kraken.Provider.Types,
-  Kraken.Provider.Firedac.Metadata,
-  Kraken.Migrate;
+  Kraken.Provider.Firedac.Metadata;
 
 type
   TKrakenQuerys = TObjectList<TKrakenProviderFiredacQuery>;
@@ -51,7 +50,6 @@ type
     FKrakenMetadatas       : TKrakenMetas;
     FKrakenProviderSettings: TKrakenProviderSettings<TKrakenProviderFiredac>;
     FKrakenProviderTypes   : TKrakenProviderTypes<TKrakenProviderFiredac>;
-    FKrakenMigrate         : TKrakenMigrate;
 
     LIdTCPClient: TIdTCPClient;
 
@@ -95,8 +93,6 @@ type
     function Metadata: TKrakenProviderFiredacMetadata; overload;
     function Metadata(const AId: String): TKrakenProviderFiredacMetadata; overload;
     function Metadata(const AId: Integer): TKrakenProviderFiredacMetadata; overload;
-
-    function Migrate: TKrakenMigrate; overload;
   end;
 
 implementation
@@ -131,9 +127,6 @@ begin
 
   if Assigned(LIdTCPClient) then
     FreeAndNil(LIdTCPClient);
-
-  if Assigned(FKrakenMigrate) then
-    FreeAndNil(FKrakenMigrate);
 
   inherited;
 end;
@@ -212,7 +205,7 @@ begin
   except
     on e: exception do
     begin
-      KrakenLOG.Error(E.Message);
+
       raise;
     end;
   end;
@@ -236,7 +229,7 @@ begin
   except
     on e: exception do
     begin
-      KrakenLOG.Error(E.Message);
+//      TKrakenLOG.Error(E.Message);
       raise;
     end;
   end;
@@ -249,7 +242,7 @@ begin
   except
     on e: exception do
     begin
-      KrakenLOG.Error(E.Message);
+//      TKrakenLOG.Error(E.Message);
       raise;
     end;
   end;
@@ -277,7 +270,7 @@ begin
     begin
       Rollback;
       if LSQL <> '' then Query.SQL.Text := LSQL;
-      KrakenLOG.Error(E.Message);
+//      TKrakenLOG.Error(E.Message);
       raise;
     end;
   end;
@@ -305,7 +298,7 @@ begin
     begin
       Rollback;
       if LSQL <> '' then Query.SQL.Text := LSQL;
-      KrakenLOG.Error(E.Message);
+//      TKrakenLOG.Error(E.Message);
       raise;
     end;
   end;
@@ -333,7 +326,7 @@ begin
     on e: exception do
     begin
       if LSQL <> '' then Query.SQL.Text := LSQL;
-      KrakenLOG.Error(E.Message);
+//      TKrakenLOG.Error(E.Message);
       raise;
     end;
   end;
@@ -415,13 +408,6 @@ end;
 function TKrakenProviderFiredac.Metadata(const AId: Integer): TKrakenProviderFiredacMetadata;
 begin
   Result := Metadata(IntToStr(AId));
-end;
-
-function TKrakenProviderFiredac.Migrate: TKrakenMigrate;
-begin
-  if not Assigned(FKrakenMigrate) then
-    FKrakenMigrate := TKrakenMigrate.Create(Self);
-  Result := FKrakenMigrate;
 end;
 
 end.

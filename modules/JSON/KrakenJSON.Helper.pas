@@ -1,4 +1,4 @@
-unit Kraken.Helper;
+unit KrakenJSON.Helper;
 
 interface
 
@@ -8,8 +8,8 @@ uses
   System.JSON,
   System.Generics.Collections,
   REST.Json,
-  Kraken.DateTime.Helper,
-  Kraken.Interfaces;
+  KrakenJSON.DateTime.Helper,
+  KrakenJSON.Interfaces;
 
 type
   TKrakenObjectHelper = class helper for TJSONObject
@@ -87,6 +87,7 @@ type
 
       procedure fromJSONObject(Value: TJSONObject);
       procedure fromJSONString(Value: String);
+      procedure fromJSONFile(Value: String);
   end;
 
 implementation
@@ -286,6 +287,23 @@ begin
     json.SaveToFile(AFileName);
   finally
     json.Free;
+  end;
+end;
+
+procedure TObjectHelper.fromJSONFile(Value: String);
+var
+  fileJSON: TStringList;
+begin
+  if not FileExists(Value) then
+    raise EFileNotFoundException.CreateFmt('Arquivo %s não encontrado', [Value]);
+
+  fileJSON := TStringList.Create;
+  try
+    fileJSON.LoadFromFile(Value);
+
+    fromJSONString( fileJSON.Text );
+  finally
+    fileJSON.Free;
   end;
 end;
 

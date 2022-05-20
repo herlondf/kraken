@@ -1,4 +1,4 @@
-unit Kraken.Config;
+unit KrakenJSON.Config;
 
 interface
 

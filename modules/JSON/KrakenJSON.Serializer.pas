@@ -1,12 +1,12 @@
-unit Kraken.Serializer;
+unit KrakenJSON.Serializer;
 
 interface
 
 uses
-  Kraken.Interfaces,
-  Kraken.Base,
-  Kraken.RTTI,
-  Kraken.DateTime.Helper,
+  KrakenJSON.Interfaces,
+  KrakenJSON.Base,
+  KrakenJSON.RTTI,
+  KrakenJSON.DateTime.Helper,
   System.Generics.Collections,
   System.Rtti,
   System.JSON,

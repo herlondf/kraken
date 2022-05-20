@@ -1,4 +1,4 @@
-unit Kraken.Base;
+unit KrakenJSON.Base;
 
 interface
 

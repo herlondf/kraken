@@ -1,15 +1,15 @@
-unit Kraken.Interfaces;
+unit KrakenJSON.Interfaces;
 
 interface
 
 uses
-  Kraken.Config,
+  KrakenJSON.Config,
   System.JSON,
   System.Generics.Collections;
 
 type
-  TKrakenConfig = Kraken.Config.TKrakenConfig;
-  TCaseDefinition = Kraken.Config.TCaseDefinition;
+  TKrakenConfig = KrakenJSON.Config.TKrakenConfig;
+  TCaseDefinition = KrakenJSON.Config.TCaseDefinition;
 
   IKrakenSerializer<T: class, constructor> = interface
     ['{F808BE4D-AF1A-4BDF-BF3B-945C39762853}']
@@ -42,8 +42,8 @@ type
 implementation
 
 uses
-  Kraken.Serializer,
-  Kraken.Deserializer;
+  KrakenJSON.Serializer,
+  KrakenJSON.Deserializer;
 
 class function TKrakenDefault.Deserializer(bUseIgnore: boolean = True): IKrakenDeserializer<TObject>;
 begin

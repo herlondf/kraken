@@ -5,31 +5,34 @@ interface
 uses
   System.Classes,
   System.SyncObjs,
-  System.SysUtils;
+  System.SysUtils,
+  Kraken.Log;
 
 type
-  TKrakenEvent = reference to procedure;
-
+  //TKrakenEvent = reference to procedure;
+  
   TKrakenThread = class(TThread)
     class destructor UnInitialize;
   class var
     FEvent: TEvent;
     FDefaultJob: TKrakenThread;
   private
-    fProcEvent: TKrakenEvent;
+    fProcEvent: TProc;
     fInterval: Integer;
+    fPaused: Boolean;
   protected
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
     procedure Execute; override;
   public
-    class function DefaultJob: TKrakenThread;
-
-    procedure Interval(const Value: Integer);
-    procedure ProcEvent(const AProcEvent: TKrakenEvent);
-
+    class function DefaultJob(AFreeOnTerminate: Boolean = False): TKrakenThread;
+    class function NewJob(AFreeOnTerminate: Boolean = False): TKrakenThread;
+    
+    function Interval(const Value: Integer): TKrakenThread;
+    function ProcEvent(const AProcEvent: TProc): TKrakenThread;
     procedure Pause;
     procedure Run;
+    procedure Finish;
   end;
 
 implementation
@@ -62,19 +65,21 @@ begin
       if Assigned(fProcEvent) then
         fProcEvent;
     except
-
     end;
   end;
 
   while not Self.Terminated do
   begin
+    if fPaused then
+      Continue;
+  
     LWaitResult := FEvent.WaitFor( fInterval );
-
-    if LWaitResult <> TWaitResult.wrTimeout then
+    if
+     LWaitResult <> TWaitResult.wrTimeout then
       Break;
-
+      
     try
-      if Assigned(fProcEvent) then
+      if Assigned(fProcEvent) then        
         fProcEvent;
     except
       Continue;
@@ -85,36 +90,65 @@ begin
   LCriticalSection.Free;
 end;
 
-procedure TKrakenThread.Interval(const Value: Integer);
+procedure TKrakenThread.Finish;
 begin
+  if Assigned(FDefaultJob) then
+  begin
+    if not FDefaultJob.Terminated then
+    begin
+      FDefaultJob.Terminate;
+      FEvent.SetEvent;
+      if not FDefaultJob.Suspended then
+      begin
+        try
+          FDefaultJob.WaitFor;
+        except
+          on e: exception do KrakenLog.Error(e.Message);
+        end;
+      end;
+    end;
+
+    FreeAndNil(FDefaultJob);
+  end;
+end;
+
+function TKrakenThread.Interval(const Value: Integer): TKrakenThread;
+begin
+  Result := Self;
   fInterval := Value;
 end;
 
 procedure TKrakenThread.Pause;
 begin
-  if not FDefaultJob.Suspended then
-    FDefaultJob.Suspended := True;
+  fPaused := True;
 end;
 
-procedure TKrakenThread.ProcEvent(const AProcEvent: TKrakenEvent);
+function TKrakenThread.ProcEvent(const AProcEvent: TProc): TKrakenThread;
 begin
+  Result := Self;
   fProcEvent := AProcEvent;
 end;
 
 procedure TKrakenThread.Run;
 begin
-  if FDefaultJob.Suspended then
-    FDefaultJob.Suspended := False;
+  fPaused := False;
 end;
 
-class function TKrakenThread.DefaultJob: TKrakenThread;
+class function TKrakenThread.DefaultJob(AFreeOnTerminate: Boolean = False): TKrakenThread;
 begin
   if FDefaultJob = nil then
   begin
     FDefaultJob := TKrakenThread.Create(True);
-    FDefaultJob.FreeOnTerminate := False;
+    FDefaultJob.FreeOnTerminate := AFreeOnTerminate;
   end;
 
+  Result := FDefaultJob;
+end;
+
+class function TKrakenThread.NewJob(AFreeOnTerminate: Boolean = False): TKrakenThread;
+begin
+  FDefaultJob := TKrakenThread.Create(True);
+  FDefaultJob.FreeOnTerminate := AFreeOnTerminate;
   Result := FDefaultJob;
 end;
 
@@ -126,9 +160,15 @@ begin
     begin
       FDefaultJob.Terminate;
       FEvent.SetEvent;
-
       if not FDefaultJob.Suspended then
-        FDefaultJob.WaitFor;
+      begin
+        try
+          FDefaultJob.WaitFor;
+        except
+          on e: exception do KrakenLog.Error(e.Message);
+        end;
+      end;
+        
     end;
 
     FreeAndNil(FDefaultJob);

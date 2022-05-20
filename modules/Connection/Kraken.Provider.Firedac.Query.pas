@@ -6,7 +6,6 @@ uses
   System.SysUtils,
   System.Classes,
 
-  Kraken.Log,
   Kraken.Consts,
 
   FireDAC.Comp.Client,
@@ -124,12 +123,15 @@ begin
   if Assigned(fProcessError) then
     fProcessError( pException.Message );
 
-  KrakenLOG.Fatal( SaveQuery );
+//  TKrakenLOG.Fatal( SaveQuery );
 
   if pException is EFDDBEngineException then
   begin
-    KrakenLOG.Fatal( IntToStr( EFDDBEngineException(pException).ErrorCode ) );
+//    TKrakenLOG.Fatal( IntToStr( EFDDBEngineException(pException).ErrorCode ) );
 
+    if EFDDBEngineException(pException).ErrorCode = 7 then
+      {Duplicidade registro}
+    else        
     {Deadlock-PostgreSQL}
     if EFDDBEngineException(pException).FDCode = 1500 then
     begin
@@ -143,7 +145,7 @@ begin
   else
   if pException is EFDDBArrayExecuteError then
   begin
-    KrakenLOG.Fatal( IntToStr( EFDDBArrayExecuteError(pException).FDCode ) );
+//    TKrakenLOG.Fatal( IntToStr( EFDDBArrayExecuteError(pException).FDCode ) );
     TKrakenProviderFiredac(FOwner).Rollback;
   end
   else
@@ -202,7 +204,7 @@ end;
 
 procedure TKrakenProviderFiredacQuery.Open(ASQL: String; ALog: Boolean = false);
 begin
-  if ALog then KrakenLOG.Trace( SaveQuery );
+//  if ALog then TKrakenLOG.Trace( SaveQuery );
 
   try
     if Assigned(fProcessStart) then
@@ -226,7 +228,7 @@ end;
 
 procedure TKrakenProviderFiredacQuery.Open(ALog: Boolean = false);
 begin
-  if ALog then KrakenLOG.Trace( SaveQuery );
+//  if ALog then TKrakenLOG.Trace( SaveQuery );
 
   try
     if Assigned(fProcessStart) then
@@ -248,7 +250,7 @@ end;
 
 procedure TKrakenProviderFiredacQuery.ExecSQL(ALog: Boolean = false);
 begin
-  if ALog then KrakenLOG.Trace( SaveQuery );
+//  if ALog then TKrakenLOG.Trace( SaveQuery );
 
   try
     if Assigned(fProcessStart) then

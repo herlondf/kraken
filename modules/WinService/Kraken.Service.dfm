@@ -1,5 +1,4 @@
 object KrakenService: TKrakenService
-  OldCreateOrder = False
   DisplayName = 'KrakenService'
   AfterInstall = ServiceAfterInstall
   OnExecute = ServiceExecute

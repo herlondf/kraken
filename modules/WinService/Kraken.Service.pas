@@ -1,4 +1,4 @@
-unit Kraken.Service;
+﻿unit Kraken.Service;
 
 interface
 
@@ -13,19 +13,20 @@ uses
   System.Win.Registry,
   Vcl.Graphics,
   Vcl.Controls,
-  Vcl.SvcMgr;
+  Vcl.SvcMgr,
+  Kraken.Log;
 
-type
-  TKrakenThreadExecute = class(TThread)
+  type
+  TKrakenThreadService = class(TThread)
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
   class var
     FEvent: TEvent;
-    FDefaultJob: TKrakenThreadExecute;
+    FDefaultJob: TKrakenThreadService;
   protected
     procedure Execute; override;
   public
-    class function DefaultJob: TKrakenThreadExecute;
+    class function DefaultJob: TKrakenThreadService;
     class destructor UnInitialize;
   end;
 
@@ -37,20 +38,19 @@ type
   protected
     constructor Create(AOwner: TComponent); override;
     function GetServiceController: TServiceController; override;
-
     procedure DoStart; override;
     function DoStop: Boolean; override;
     function DoPause: Boolean; override;
     procedure DoShutdown; override;
   end;
-
+  
 var
   FKrakenService : TKrakenService;
-
+  
 implementation
 
 uses
-  Kraken.Setup;
+  Kraken.Service.Setup;
 
 {$R *.dfm}
 
@@ -59,47 +59,52 @@ begin
   FKrakenService.Controller(CtrlCode);
 end;
 
-{ TBinaryUpdaterJob }
-
-procedure TKrakenThreadExecute.AfterConstruction;
+{ TKrakenThreadService }
+procedure TKrakenThreadService.AfterConstruction;
 begin
   inherited;
   FEvent := TEvent.Create;
 end;
 
-procedure TKrakenThreadExecute.BeforeDestruction;
+procedure TKrakenThreadService.BeforeDestruction;
 begin
   inherited;
   FEvent.Free;
 end;
 
-procedure TKrakenThreadExecute.Execute;
+procedure TKrakenThreadService.Execute;
 var
   LWaitResult: TWaitResult;
   LCriticalSection: TCriticalSection;
+  LOnExecute: TServiceEvent;
 begin
   inherited;
-
+  
   LCriticalSection := TCriticalSection.Create;
   LCriticalSection.Enter;
-
+  
+  LOnExecute := KrakenServiceSetup.OnExecute;
+  
   if not Self.Terminated  then
   begin
-    try
-      KrakenSetup.OnExecute;
+    try     
+      if Assigned(LOnExecute) then
+        LOnExecute;
     except
-
+    
     end;
   end;
 
   while not Self.Terminated do
   begin
-    LWaitResult := FEvent.WaitFor( KrakenSetup.ExecuteInterval );
+    LWaitResult := FEvent.WaitFor( KrakenServiceSetup.ExecuteInterval );
 
     if LWaitResult <> TWaitResult.wrTimeout then
       Break;
+
     try
-      KrakenSetup.OnExecute;
+      if Assigned(LOnExecute) then
+        LOnExecute;
     except
       Continue;
     end;
@@ -109,18 +114,17 @@ begin
   LCriticalSection.Free;
 end;
 
-class function TKrakenThreadExecute.DefaultJob: TKrakenThreadExecute;
+class function TKrakenThreadService.DefaultJob: TKrakenThreadService;
 begin
   if FDefaultJob = nil then
   begin
-    FDefaultJob := TKrakenThreadExecute.Create(True);
+    FDefaultJob := TKrakenThreadService.Create(True);
     FDefaultJob.FreeOnTerminate := False;
   end;
-
   Result := FDefaultJob;
 end;
 
-class destructor TKrakenThreadExecute.UnInitialize;
+class destructor TKrakenThreadService.UnInitialize;
 begin
   if Assigned(FDefaultJob) then
   begin
@@ -130,20 +134,18 @@ begin
       FEvent.SetEvent;
       FDefaultJob.WaitFor;
     end;
-
     FreeAndNil(FDefaultJob);
   end;
 end;
 
-{ TKrakenService }
 
+{ TKrakenService }
 constructor TKrakenService.Create(AOwner: TComponent);
 begin
   inherited;
-
-  Self.Name        := KrakenSetup.Name;
-  Self.DisplayName := KrakenSetup.DisplayName;
-  Self.StartType   := KrakenSetup.StartType;
+  Self.Name        := KrakenServiceSetup.Name;
+  Self.DisplayName := KrakenServiceSetup.DisplayName;
+  Self.StartType   := KrakenServiceSetup.StartType;
 end;
 
 function TKrakenService.GetServiceController: TServiceController;
@@ -156,15 +158,17 @@ var
   reg : TRegIniFile;
   regEdit: TRegistry;
 begin
-  if KrakenSetup.Description = '' then
+  if KrakenServiceSetup.Description = '' then
     Exit;
 
   regEdit := TRegistry.Create(KEY_READ or KEY_WRITE);
+
   try
     regEdit.RootKey := HKEY_LOCAL_MACHINE;
+
     if regEdit.OpenKey('\SYSTEM\CurrentControlSet\Services\' + Name, False) then
     begin
-      regEdit.WriteString('Description', KrakenSetup.Description);
+      regEdit.WriteString('Description', KrakenServiceSetup.Description);
       regEdit.WriteInteger('ErrorControl', 2);
       regEdit.CloseKey;
     end;
@@ -173,6 +177,7 @@ begin
   end;
 
   Reg := TRegIniFile.Create(KEY_ALL_ACCESS);
+
   try
     Reg.RootKey := HKEY_LOCAL_MACHINE;
 
@@ -180,9 +185,8 @@ begin
     begin
       TRegistry(Reg).WriteString('EventMessageFile', ParamStr(0));
       TRegistry(Reg).WriteInteger('TypesSupported', 7);
-      TRegistry(Reg).WriteString('Description', KrakenSetup.Description);
+      TRegistry(Reg).WriteString('Description', KrakenServiceSetup.Description);
     end;
-
     if Reg.OpenKey('\SYSTEM\CurrentControlSet\Services\' + Name, True) then
     begin
       if FindCmdLineSwitch('NOVALIDATE', ['-', '/'], True) then
@@ -190,52 +194,54 @@ begin
       Else
         TRegistry(Reg).WriteString('ImagePath', GetModuleName(HInstance) +  ' -RunService' );
     end;
-
   finally
     Reg.Free;
   end;
-
 end;
 
 procedure TKrakenService.ServiceAfterInstall(Sender: TService);
 begin
   SaveRegistry;
-  KrakenSetup.AfterInstall;
+  KrakenServiceSetup.AfterInstall;
 end;
 
 procedure TKrakenService.ServiceExecute(Sender: TService);
 begin
-  if not TKrakenThreadExecute.DefaultJob.Started then
-    TKrakenThreadExecute.DefaultJob.Start;
+  if not TKrakenThreadService.DefaultJob.Started then
+    TKrakenThreadService.DefaultJob.Start;
 
-  while not Self.Terminated do
-    ServiceThread.ProcessRequests(true);
+  while not Self.Terminated do  
+    ServiceThread.ProcessRequests(true);    
 
-  if not TKrakenThreadExecute.DefaultJob.Terminated then
-    TKrakenThreadExecute.DefaultJob.Terminate;
+  if not TKrakenThreadService.DefaultJob.Terminated then
+    TKrakenThreadService.DefaultJob.Terminate;
 end;
 
 function TKrakenService.DoPause: Boolean;
 begin
-  KrakenSetup.OnPause;
+  KrakenServiceSetup.OnPause;
   inherited;
 end;
 
 procedure TKrakenService.DoShutdown;
 begin
-  KrakenSetup.OnDestroy;
+  KrakenServiceSetup.OnDestroy;
   inherited;
 end;
 
 procedure TKrakenService.DoStart;
+var
+  LStartEvent: Kraken.Service.Setup.TStartEvent;
 begin
-  KrakenSetup.OnStart;
+  LStartEvent := KrakenServiceSetup.OnStart;
+  if Assigned(LStartEvent) then
+    LStartEvent;
   inherited;
 end;
 
 function TKrakenService.DoStop: Boolean;
 begin
-  KrakenSetup.OnStop;
+  KrakenServiceSetup.OnStop;
   inherited;
 end;
 

@@ -13,6 +13,9 @@ uses
   Kraken.Provider.Query;
 
 type
+  TKrakenProvider = Kraken.Provider.TKrakenProvider;
+  TKrakenProviderQuery = Kraken.Provider.Query.TKrakenProviderQuery;
+  
   TKrakenCore = class
   private
     FProviders: TObjectList<TKrakenProvider>;

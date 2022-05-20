@@ -1,4 +1,4 @@
-unit Kraken.Service.Manager;
+﻿unit Kraken.Service.Manager;
 
 interface
 
@@ -51,7 +51,7 @@ var
 implementation
 
 uses
-  Kraken.Setup,
+  Kraken.Service.Setup,
   Kraken.Service;
 
 function ServiceManager: TServiceManager;
@@ -158,7 +158,7 @@ begin
     FServiceControlManager := OpenSCManager('', nil, SC_MANAGER_CONNECT);
 
   if FServiceHandle = 0 then
-    FServiceHandle := OpenService(FServiceControlManager, KrakenSetup.Name, SERVICE_ALL_ACCESS);
+    FServiceHandle := OpenService(FServiceControlManager, KrakenServiceSetup.Name, SERVICE_ALL_ACCESS);
 
   Result := ( FServiceControlManager <> 0 ) and ( FServiceHandle <> 0 );
 end;
