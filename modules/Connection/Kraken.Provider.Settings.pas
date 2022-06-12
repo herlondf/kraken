@@ -114,6 +114,8 @@ end;
 
 destructor TKrakenProviderSettings<T>.Destroy;
 begin
+  if Assigned(FIniFile) then
+    FIniFile.Free;
 
   inherited;
 end;
